@@ -1,0 +1,4 @@
+memory/memory.vhd MEMORY
+alu_components/ha.vhd ha
+alu_components/ha.vhd ha
+some empty
