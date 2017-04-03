@@ -1,4 +1,2 @@
-memory/memory.vhd MEMORY
-alu_components/ha.vhd ha
-alu_components/ha.vhd ha
+temp/module/ha.vhdl ha
 some empty
