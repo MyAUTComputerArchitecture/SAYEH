@@ -13,10 +13,15 @@ input=../module_list                              # Module file list
 # Color Constants
 GREEN='\033[0;32m'                                # Green Color
 RED='\033[0;31m'                                  # Red Color
+PURPLE='\033[0;35m'                               # Purple Color
 NC='\033[0m'                                      # No Color
+YELLOW='\033[0;33m'                               # Yellow Color
 
-echo "I ${RED}love${NC} ${GREEN}Stack Overflow${NC}"
 
+echo "${YELLOW}VHDL code GHDL compiling script${NC}"
+
+echo "${RED}! Cautoin : The green text color doesn't show that the module compiled successfully!!!!!!!${NC}"
+echo "${PURPLE}Module compiling phase${NC}"
 while read file module_name
 do
   analyz_out="$(ghdl -a ../$file)"                # Analyz module
@@ -29,9 +34,14 @@ do
   fi
 done < "$input"
 
+echo "${PURPLE}Testbench compiling phase${NC}"
 
 # Compiling test bench file and producing vcd file to show the wave
 ghdl -a ../tb/tb.vhd
+echo "${GREEN}/tb/tb.vhd analyzed.${NC}"
 ghdl -e TB
+echo "${GREEN}module TB evaluated.${NC}"
+
+echo "${PURPLE}Testbench wave exporting phase${NC}"
 ghdl -r TB --vcd=wave.vcd
 gtkwave wave.vcd
