@@ -19,11 +19,19 @@ echo "I ${RED}love${NC} ${GREEN}Stack Overflow${NC}"
 
 while read file module_name
 do
-  analyz_out="$(./a.out ../$file)"                # Analyz module
-  evaluate_out="$(./a.out $module_name)"          # Evaluate module
+  analyz_out="$(ghdl -a ../$file)"                # Analyz module
   if [ -z $analyz_out ];then
-    echo "${GREEN}File $file analyzed successfully.${NC}"
-  else
-    echo "${RED}$analyz_out${NC}"
+    echo "${GREEN}File $file analyzed.${NC}"
+    evaluate_out="$(ghdl -e $module_name)"          # Evaluate module
+    if [ -z $evaluate_out ];then
+      echo "${GREEN}module $module_name evaluated.${NC}"
+    fi
   fi
 done < "$input"
+
+
+# Compiling test bench file and producing vcd file to show the wave
+ghdl -a ../tb/tb.vhd
+ghdl -e TB
+ghdl -r TB --vcd=wave.vcd
+gtkwave wave.vcd
