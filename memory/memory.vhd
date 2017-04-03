@@ -8,14 +8,14 @@ library IEEE;
 use IEEE.std_logic_1164.all;
 use IEEE.numeric_std.all;
 
-entity memory is
+entity MEMORY is
 	port (address : in std_logic_vector;
 		data_in : in std_logic_vector;
 		data_out : out std_logic_vector;
 		clk, rwbar : in std_logic);
-end entity memory;
+end entity MEMORY;
 
-architecture behavioral of memory is
+architecture MEMORY_ARCH of MEMORY is
 	type mem is array (natural range <>, natural range <>) of std_logic;
 begin
 	process (clk)
@@ -34,4 +34,4 @@ begin
 			end if;
 		end if;
 	end process;
-end architecture behavioral;
+end architecture MEMORY_ARCH;
