@@ -20,7 +20,7 @@ YELLOW='\033[0;33m'                               # Yellow Color
 
 echo "${YELLOW}VHDL code GHDL compiling script${NC}"
 
-echo "${RED}! Cautoin : The green text color doesn't show that the module compiled successfully!!!!!!!${NC}"
+echo "${RED}!!!!! Caution : The green text color doesn't show that the module compiled successfully!!!!!${NC}"
 echo "${PURPLE}Module compiling phase${NC}"
 while read file module_name
 do
