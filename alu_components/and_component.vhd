@@ -18,7 +18,7 @@ entity AND_COMPONENT is
 		INPUT2		: in  std_logic_vector(COMPONENT_SIZE - 1 downto 0);
 		OUTPUT		: out std_logic_vector(COMPONENT_SIZE - 1 downto 0)
 	    );
-end component;
+end entity;
 
 architecture AND_COMPONENT_ARCH of AND_COMPONENT is
 
@@ -27,5 +27,5 @@ begin
 	for I in OUTPUT'range generate
 	begin
 		OUTPUT(i) <= INPUT1 and INPUT2;
-	end for;
+	end generate;
 end architecture;

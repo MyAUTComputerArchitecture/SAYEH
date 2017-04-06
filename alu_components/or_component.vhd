@@ -18,7 +18,7 @@ entity OR_COMPONENT is
 		INPUT2		: in  std_logic_vector(COMPONENT_SIZE - 1 downto 0);
 		OUTPUT		: out std_logic_vector(COMPONENT_SIZE - 1 downto 0)
 	    );
-end component;
+end entity;
 
 architecture OR_COMPONENT_ARCH of OR_COMPONENT is
 
@@ -27,5 +27,5 @@ begin
 	for I in OUTPUT'range generate
 	begin
 		OUTPUT(i) <= INPUT1 or INPUT2;
-	end for;
+	end generate;
 end architecture;
