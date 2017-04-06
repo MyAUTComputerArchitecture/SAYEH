@@ -1,2 +1,4 @@
-temp/module/ha.vhdl ha
-some empty
+memory/memory.vhd MEMORY
+alu_components/and_component.vhd AND_COMPONENT
+alu_components/or_component.vhd OR_COMPONENT
+alu_components/xor_component.vhd XOR_COMPONENT

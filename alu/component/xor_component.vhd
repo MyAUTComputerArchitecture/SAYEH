@@ -3,13 +3,13 @@
 --------------------------------------------------------------------------------
 -- Create Date:         06-04-2017
 -- Package Name:        alu_component
--- Module Name:         AND_COMPONENT
+-- Module Name:         XOR_COMPONENT
 --------------------------------------------------------------------------------
 
 library IEEE;
 use IEEE.std_logic_1164.all;
 
-entity AND_COMPONENT is
+entity XOR_COMPONENT is
 	generic(
 		COMPONENT_SIZE	: integer
 	       );
@@ -20,12 +20,12 @@ entity AND_COMPONENT is
 	    );
 end entity;
 
-architecture AND_COMPONENT_ARCH of AND_COMPONENT is
+architecture XOR_COMPONENT_ARCH of XOR_COMPONENT is
 
 begin
 	GATE_GEN:
-	for I in 0 to COMPONENT_SIZE - 1 generate
+	for I in OUTPUT'range generate
 	begin
-		OUTPUT(I) <= INPUT1(I) and INPUT2(I);
+		OUTPUT(I) <= INPUT1(I) xor INPUT2(I);
 	end generate;
 end architecture;

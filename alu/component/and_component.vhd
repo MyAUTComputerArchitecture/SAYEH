@@ -21,11 +21,9 @@ entity AND_COMPONENT is
 end entity;
 
 architecture AND_COMPONENT_ARCH of AND_COMPONENT is
-
 begin
 	GATE_GEN:
-	for I in 0 to COMPONENT_SIZE - 1 generate
-	begin
+	for I in 0 OUTPUT'range generate
 		OUTPUT(I) <= INPUT1(I) and INPUT2(I);
 	end generate;
 end architecture;
