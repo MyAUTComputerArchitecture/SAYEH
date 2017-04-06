@@ -1,9 +1,11 @@
 --------------------------------------------------------------------------------
--- Author:        Parham Alvani (parham.alvani@gmail.com)
---
--- Create Date:   16-03-2017
--- Module Name:   memory.vhd
+-- Author:              Parham Alvani (parham.alvani@gmail.com)
 --------------------------------------------------------------------------------
+-- Create Date:         16-03-2017
+-- Package Name:        memory
+-- Module Name:         MEMORY
+--------------------------------------------------------------------------------
+
 library IEEE;
 use IEEE.std_logic_1164.all;
 use IEEE.numeric_std.all;
