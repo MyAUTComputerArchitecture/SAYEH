@@ -8,8 +8,7 @@
 
 cd out                                            # Change the current directory to the /out
 
-rm *						# Removing all last generated copiled files
-
+rm *						# Removing all last compiled files
 input=../module_list                              # Module file list 
 
 # Color Constants
@@ -39,11 +38,11 @@ done < "$input"
 echo "${PURPLE}Testbench compiling phase${NC}"
 
 # Compiling test bench file and producing vcd file to show the wave
-ghdl -a ../tb/sumtb.vhd
+ghdl -a ../tb/clockedtb.vhd
 echo "${GREEN}/tb/tb.vhd analyzed.${NC}"
-ghdl -e TB
+ghdl -e CLOCK_TB
 echo "${GREEN}module TB evaluated.${NC}"
 
 echo "${PURPLE}Testbench wave exporting phase${NC}"
-ghdl -r TB --vcd=wave.vcd
+ghdl -r CLOCK_TB --vcd=wave.vcd
 gtkwave wave.vcd
