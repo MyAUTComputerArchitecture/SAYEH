@@ -22,7 +22,7 @@ end entity;
 architecture SHIFT_L_COMPONENT_ARCH of SHIFT_L_COMPONENT is
 begin
 	SIGNAL_GEN:
-	for I in 1 to COMPonent_Size - 1 generate
+	for I in 1 to COMPONENT_SIZE - 1 generate
 		OUTPUT(I) <= INPUT(I - 1);
 	end generate;
 	
