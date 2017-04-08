@@ -19,6 +19,12 @@ PURPLE='\033[0;35m'                               # Purple Color
 NC='\033[0m'                                      # No Color
 YELLOW='\033[0;33m'                               # Yellow Color
 
+platform='unknown'
+if [[ `uname` == 'Linux' ]]; then
+  platform='linux'
+elif [[ `uname` == 'Darwin' ]]; then
+  platform='mac'
+fi
 
 echo "${YELLOW}VHDL code GHDL compiling script${NC}"
 
@@ -46,4 +52,11 @@ echo "${GREEN}module TB evaluated.${NC}"
 
 echo "${PURPLE}Testbench wave exporting phase${NC}"
 ghdl -r TB --vcd=wave.vcd
-gtkwave wave.vcd
+
+echo "$platform"
+
+if [[ $platform == 'linux' ]]; then
+  gtkwave wave.vcd
+elif [[ $platform == 'mac' ]]; then
+  open -a gtkwave wave.vcd
+fi
