@@ -17,7 +17,7 @@ entity SUBTRACTOR_COMPONENT is
 	port(
 		INPUT1		: in  std_logic_vector(COMPONENT_SIZE - 1 downto 0);
 		INPUT2		: in  std_logic_vector(COMPONENT_SIZE - 1 downto 0);
-		RES		: out std_logic_vector(COMPONENT_SIZE - 1 downto 0);
+		RES			: out std_logic_vector(COMPONENT_SIZE - 1 downto 0);
 		CARRY		: out std_logic
 	    );
 end entity;
