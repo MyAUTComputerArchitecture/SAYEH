@@ -11,7 +11,7 @@ library IEEE;
 use IEEE.std_logic_1164.all;
 use ieee.numeric_std.all;
 
-entity COMPARATION_COMPONENT is
+entity COMPARISON_COMPONENT is
     generic(
         COMPONENT_SIZE  : integer
     );
@@ -24,7 +24,7 @@ entity COMPARATION_COMPONENT is
     );
 end entity;
 
-architecture COMPARATION_COMPONENT_ARCH of COMPARATION_COMPONENT is
+architecture COMPARISON_COMPONENT_ARCH of COMPARISON_COMPONENT is
     component BIT_COMPARATOR_COMPONENT is
         port(
             INPUT1   : in std_logic;
