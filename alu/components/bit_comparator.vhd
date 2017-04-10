@@ -29,7 +29,7 @@ begin
     e    <= INPUT1 xnor INPUT2;
     g    <= INPUT1 and (not INPUT2);
     l    <= (not INPUT1) and INPUT2;
-    GREATER <= (g or G_IN) and (not (L_IN or E_IN));
-    LOWER <= (l or L_IN) and (not (G_IN or E_IN));
-    EQUAL <= (e or E_IN) and (not (G_IN or L_IN));
+    GREATER <= (g or G_IN) and (not (L_IN));
+    LOWER <= (l or L_IN) and (not (G_IN));
+    EQUAL <= (e and E_IN);
 end architecture;
