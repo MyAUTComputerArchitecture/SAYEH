@@ -9,9 +9,8 @@
 library IEEE;
 
 use IEEE.std_logic_1164.all;
-use ieee.numeric_std.all;
 
-entity BIT_COMPARATOR is
+entity BIT_COMPARATOR_COMPONENT is
     port(
         INPUT1   : in std_logic;
         INPUT2   : in std_logic;
