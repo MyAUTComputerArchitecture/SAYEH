@@ -48,7 +48,7 @@ begin
     CONNECTING:
     for I in 0 to COMPONENT_SIZE - 1 generate
         MODULE: BIT_COMPARATOR
-        port map(INPUT1(COMPONENT_SIZE - 1), INPUT2(COMPONENT_SIZE - 1), equals(I), lowers(I), greaters(I), equals(I + 1), greaters(I + 1), lowers(I + 1));
+        port map(INPUT1(COMPONENT_SIZE - 1 - I), INPUT2(COMPONENT_SIZE - 1 - I), equals(I), lowers(I), greaters(I), equals(I + 1), greaters(I + 1), lowers(I + 1));
         
     end generate;
 
