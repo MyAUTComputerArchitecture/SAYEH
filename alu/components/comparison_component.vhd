@@ -2,7 +2,7 @@
 -- Author:              SeyedMostafa Meshkati
 --------------------------------------------------------------------------------
 -- Create Date:         08-04-2017
--- Package Name:        alu_component
+-- Package Name:        alu/components
 -- Module Name:         COMPARISION_COMPONENT
 --------------------------------------------------------------------------------
 

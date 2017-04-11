@@ -2,7 +2,7 @@
 -- Author:              SeyedMostafa Meshkati
 --------------------------------------------------------------------------------
 -- Create Date:         08-04-2017
--- Package Name:        alu_component
+-- Package Name:        alu/components
 -- Module Name:         COMPARISION_COMPONENT
 --------------------------------------------------------------------------------
 
@@ -10,7 +10,7 @@ library IEEE;
 
 use IEEE.std_logic_1164.all;
 
-entity BIT_COMPARATOR_COMPONENT is
+entity BIT_COMPARATOR is
     port(
         INPUT1   : in std_logic;
         INPUT2   : in std_logic;
@@ -23,7 +23,7 @@ entity BIT_COMPARATOR_COMPONENT is
     );
 end entity;
 
-architecture BIT_COMPARATOR_ARCH of BIT_COMPARATOR_COMPONENT is
+architecture BIT_COMPARATOR_ARCH of BIT_COMPARATOR is
     signal e, g, l : std_logic;
 begin
     e    <= INPUT1 xnor INPUT2;
