@@ -18,6 +18,12 @@ PURPLE='\033[0;35m'                               # Purple Color
 NC='\033[0m'                                      # No Color
 YELLOW='\033[0;33m'                               # Yellow Color
 
+platform='unknown'
+if [ `uname` = 'Linux' ]; then
+  platform='linux'
+elif [ `uname` = 'Darwin' ]; then
+  platform='mac'
+fi
 
 echo "${YELLOW}VHDL code GHDL compiling script${NC}"
 
@@ -38,11 +44,17 @@ done < "$input"
 echo "${PURPLE}Testbench compiling phase${NC}"
 
 # Compiling test bench file and producing vcd file to show the wave
-ghdl -a ../tb/clockedtb.vhd
+ghdl -a ../src/tb/clockedtb.vhd
 echo "${GREEN}/tb/tb.vhd analyzed.${NC}"
 ghdl -e CLOCK_TB
 echo "${GREEN}module TB evaluated.${NC}"
 
 echo "${PURPLE}Testbench wave exporting phase${NC}"
 ghdl -r CLOCK_TB --vcd=wave.vcd
-gtkwave wave.vcd
+
+
+if [ $platform = 'linux' ]; then
+  gtkwave wave.vcd
+elif [ $platform = 'mac' ]; then
+  open -a gtkwave wave.vcd
+fi
