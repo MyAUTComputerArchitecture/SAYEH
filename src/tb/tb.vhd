@@ -6,175 +6,105 @@ entity TB is
 end TB;
 
 architecture TB_ARCH of TB is
-	component COMPARISON_COMPONENT is
+	component ALU is
 		generic(
 			COMPONENT_SIZE  : integer
-		);
-
+			);
 		port(
-			INPUT1      : in std_logic_vector(COMPONENT_SIZE - 1 downto 0);
-			INPUT2      : in std_logic_vector(COMPONENT_SIZE - 1 downto 0);
-			Z_FLAG      : out std_logic;
-			CARRY_FLAG  : out std_logic
-		);
+			INPUT1		: in  std_logic_vector(COMPONENT_SIZE - 1 downto 0);
+			INPUT2		: in  std_logic_vector(COMPONENT_SIZE - 1 downto 0);
+			OPERATION	: in  std_logic_vector(3 downto 0);
+			OUTPUT		: out std_logic_vector(COMPONENT_SIZE - 1 downto 0);
+			CARRY_OUT	: out std_logic;
+			ZERO_OUT	: out std_logic
+	      );
 	end component;
+	
+	signal a, b, output	: std_logic_vector(15 downto 0);
+	signal op			: std_logic_vector(3 downto 0);
+	signal carry		: std_logic;
+	signal zero			: std_logic;
 
-	signal a, b: std_logic_vector(15 downto 0);
-	signal z, c: std_logic;
+begin
 
-	begin
-	MODULE: COMPARISON_COMPONENT
-	generic map (16)
-	port map(a, b, z, c);
-
+	ALU_INS: ALU
+		generic map(
+			COMPONENT_SIZE => 16
+		)
+		port map(
+			INPUT1    => a,
+			INPUT2    => b,
+			OPERATION => op,
+			OUTPUT    => OUTPUT,
+			CARRY_OUT => carry,
+			ZERO_OUT  => zero
+		);
+	
 	process
 	begin
-		a <= "0010100000000011";
-		b <= "0001111111111101";
-
-		wait for 10 ns;
-
-		a <= "0010100000000000";
-		b <= "0010100000000000";
-
-		wait for 10 ns;
-
-		a <= "0010100000000000";
-		b <= "0011100000000001";
-
-		wait for 10 ns;
-
+		a	<=	"0000000000000000";
+		b	<=	"0000000000000000";
+		op	<=	"0110";						-- Add
+		
+		wait for 1 ns;
+		
+		
+		a	<=	"0000100000010010";
+		b	<=	"0001000000010001";
+		op	<=	"0000";						-- And
+		
+		wait for 1 ns;
+		
+		
+		a	<=	"0000100000010010";
+		b	<=	"0001000000000001";
+		op	<=	"0000";						-- Another And :D
+		
+		wait for 1 ns;
+		
+		a	<=	"0001111010010010";
+		b	<=	"0001000010010001";
+		op	<=	"0001";						-- Or
+		
+		wait for 1 ns;
+		
+		a	<=	"1001000000010010";
+		b	<=	"0101000000010001";
+		op	<=	"0010";						-- Xor
+		wait for 1 ns;
+		
+		a	<=	"0001000000010010";
+		b	<=	"0001000000010001";
+		op	<=	"0011";						-- Compare
+		wait for 1 ns;
+		
+		a	<=	"0001000000010010";
+		b	<=	"0001000000010001";
+		op	<=	"0100";						-- Shift Left
+		wait for 1 ns;
+		
+		a	<=	"0001000000010010";
+		b	<=	"0001000000010001";
+		op	<=	"0101";						-- Shift Right
+		wait for 1 ns;
+		
+		a	<=	"0001000000010010";
+		b	<=	"0011000000010001";
+		op	<=	"0111";						-- Subtract
+		wait for 1 ns;
+		
+		a	<=	"0000000000010011";
+		b	<=	"0000000000010011";
+		op	<=	"0111";						-- Other Subtract :D
+		wait for 1 ns;
+		
+		a	<=	"1111000001011011";
+		b	<=	"0001000001010001";
+		op	<=	"0000";
+		wait for 1 ns;						-- Two's complement
+		
+		wait for 1 ns;
 		assert false report "Reached end of test";
 		wait;
-
 	end process;
-	
-
-end architecture;
-
--- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- 
-
--- architecture TB_ARCH of TB is
--- 	component BIT_COMPARATOR is
--- 		port(
--- 			INPUT1   : in std_logic;
--- 			INPUT2   : in std_logic;
--- 			E_IN     : in std_logic;
--- 			L_IN     : in std_logic;
--- 			G_IN     : in std_logic;
--- 			EQUAL    : out std_logic;
--- 			GREATER  : out std_logic;
--- 			LOWER    : out std_logic
--- 		);
--- 	end component;
-
--- 	signal a, b, ei, li, gi, e, l, g: std_logic;
--- begin
--- 	MODULE: BIT_COMPARATOR
---        	port map(a, b, ei, li, gi, e, g, l);
-	
--- 	process
--- 	begin
--- 		a <= '0';
--- 		b <= '0';
--- 		ei <= '1';
--- 		li <= '0';
--- 		gi <= '0';
-
--- 		wait for 10 ns;
-
--- 		a <= '0';
--- 		b <= '0';
--- 		ei <= '0';
--- 		li <= '1';
--- 		gi <= '0';
-
--- 		wait for 10 ns;
-
--- 		a <= '0';
--- 		b <= '0';
--- 		ei <= '0';
--- 		li <= '0';
--- 		gi <= '1';
-
--- 		wait for 10 ns;
-
--- 		-- -- --
--- 		a <= '1';
--- 		b <= '0';
--- 		ei <= '1';
--- 		li <= '0';
--- 		gi <= '0';
-
--- 		wait for 10 ns;
-
--- 		a <= '1';
--- 		b <= '0';
--- 		ei <= '0';
--- 		li <= '1';
--- 		gi <= '0';
-
--- 		wait for 10 ns;
-
--- 		a <= '1';
--- 		b <= '0';
--- 		ei <= '0';
--- 		li <= '0';
--- 		gi <= '1';
-
--- 		wait for 10 ns;
-
--- 		-- -- -- 
--- 		a <= '0';
--- 		b <= '1';
--- 		ei <= '1';
--- 		li <= '0';
--- 		gi <= '0';
-
--- 		wait for 10 ns;
-
--- 		a <= '0';
--- 		b <= '1';
--- 		ei <= '0';
--- 		li <= '1';
--- 		gi <= '0';
-
--- 		wait for 10 ns;
-
--- 		a <= '0';
--- 		b <= '1';
--- 		ei <= '0';
--- 		li <= '0';
--- 		gi <= '1';
-
--- 		wait for 10 ns;
-
--- 		-- -- -- -- -- 
--- 		a <= '1';
--- 		b <= '1';
--- 		ei <= '1';
--- 		li <= '0';
--- 		gi <= '0';
-
--- 		wait for 10 ns;
-
--- 		a <= '1';
--- 		b <= '1';
--- 		ei <= '0';
--- 		li <= '1';
--- 		gi <= '0';
-
--- 		wait for 10 ns;
-
--- 		a <= '1';
--- 		b <= '1';
--- 		ei <= '0';
--- 		li <= '0';
--- 		gi <= '1';
-
--- 		wait for 10 ns;
-
--- 		assert false report "Reached end of test";
--- 		wait;
--- 	end process;
--- end TB_ARCH;
+end TB_ARCH;
