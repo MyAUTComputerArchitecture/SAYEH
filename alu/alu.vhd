@@ -14,6 +14,7 @@ entity ALU is
 		COMPONENT_SIZE  : integer
 		);
 	port(
+		CARRY_IN	: in  std_logic;
 		INPUT1		: in  std_logic_vector(COMPONENT_SIZE - 1 downto 0);
 		INPUT2		: in  std_logic_vector(COMPONENT_SIZE - 1 downto 0);
 		OPERATION	: in  std_logic_vector(3 downto 0);
@@ -29,6 +30,7 @@ architecture ALU_ARCH of ALU is
 			COMPONENT_SIZE  : integer
 			);
 		port(
+			CARRY_IN	: in  std_logic;
 			INPUT1		: in  std_logic_vector(COMPONENT_SIZE - 1 downto 0);
 			INPUT2		: in  std_logic_vector(COMPONENT_SIZE - 1 downto 0);
 			IS_SUB		: in  std_logic;											-- 0 for add and 1 for subtraction
@@ -150,6 +152,7 @@ begin
 			COMPONENT_SIZE => COMPONENT_SIZE
 		)
 		port map(
+			CARRY_IN => CARRY_IN,
 			INPUT1 => INPUT1,
 			INPUT2 => INPUT2,
 			IS_SUB => OPERATION(0),

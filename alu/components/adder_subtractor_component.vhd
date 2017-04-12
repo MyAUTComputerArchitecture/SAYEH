@@ -14,6 +14,7 @@ entity ADDER_SUBTRACTOR_COMPONENT is
 		COMPONENT_SIZE  : integer
 		);
 	port(
+		CARRY_IN	: in  std_logic;
 		INPUT1		: in  std_logic_vector(COMPONENT_SIZE - 1 downto 0);
 		INPUT2		: in  std_logic_vector(COMPONENT_SIZE - 1 downto 0);
 		IS_SUB		: in  std_logic;											-- 0 for add and 1 for subtraction
@@ -36,7 +37,7 @@ architecture ADDER_SUBTRACTOR_COMPONENT_ARCH of ADDER_SUBTRACTOR_COMPONENT is
 	signal CARRIES		: std_logic_vector(COMPONENT_SIZE downto 0);
 	signal B_MUXED		: std_logic_vector(COMPONENT_SIZE - 1 downto 0);
 begin
-	CARRIES(0)	<= IS_SUB;
+	CARRIES(0)	<= IS_SUB and (not CARRY_IN);
 	
 	GENERATING_B:
 	for I in INPUT2'range generate
