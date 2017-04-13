@@ -2,7 +2,7 @@
 -- Author:              Ahmad Anvari
 --------------------------------------------------------------------------------
 -- Create Date:         07-04-2017
--- Package Name:        register
+-- Package Name:        register/generic_implementation
 -- Module Name:         REGISTER_R
 --------------------------------------------------------------------------------
 

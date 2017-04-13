@@ -2,7 +2,7 @@
 -- Author:              Ahmad Anvari
 --------------------------------------------------------------------------------
 -- Create Date:         13-04-2017
--- Package Name:        register
+-- Package Name:        register/generic_implementation
 -- Module Name:         REGISTER_S
 --------------------------------------------------------------------------------
 
