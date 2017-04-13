@@ -37,7 +37,7 @@ architecture ADDER_SUBTRACTOR_COMPONENT_ARCH of ADDER_SUBTRACTOR_COMPONENT is
 	signal CARRIES		: std_logic_vector(COMPONENT_SIZE downto 0);
 	signal B_MUXED		: std_logic_vector(COMPONENT_SIZE - 1 downto 0);
 begin
-	CARRIES(0)	<= IS_SUB and (not CARRY_IN);
+	CARRIES(0)	<= IS_SUB xor CARRY_IN;
 	
 	GENERATING_B:
 	for I in INPUT2'range generate
