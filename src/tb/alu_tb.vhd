@@ -11,6 +11,7 @@ architecture TB_ARCH of TB is
 			COMPONENT_SIZE  : integer
 			);
 		port(
+			CARRY_IN	: in  std_logic;
 			INPUT1		: in  std_logic_vector(COMPONENT_SIZE - 1 downto 0);
 			INPUT2		: in  std_logic_vector(COMPONENT_SIZE - 1 downto 0);
 			OPERATION	: in  std_logic_vector(3 downto 0);
@@ -24,7 +25,8 @@ architecture TB_ARCH of TB is
 	signal op			: std_logic_vector(3 downto 0);
 	signal carry		: std_logic;
 	signal zero			: std_logic;
-
+	signal cin			: std_logic;
+	
 begin
 
 	ALU_INS: ALU
@@ -32,6 +34,7 @@ begin
 			COMPONENT_SIZE => 16
 		)
 		port map(
+			CARRY_IN  => cin,
 			INPUT1    => a,
 			INPUT2    => b,
 			OPERATION => op,
@@ -42,8 +45,9 @@ begin
 	
 	process
 	begin
-		a	<=	"0000000000000000";
-		b	<=	"0000000000000000";
+		cin <=  '1';
+		a	<=	"0000000011011001";
+		b	<=	"0000000000011001";
 		op	<=	"0110";						-- Add
 		
 		wait for 1 ns;
@@ -88,11 +92,12 @@ begin
 		op	<=	"0101";						-- Shift Right
 		wait for 1 ns;
 		
-		a	<=	"0001000000010010";
-		b	<=	"0011000000010001";
+		a	<=	"0000000000110010";
+		b	<=	"0000000000010001";
 		op	<=	"0111";						-- Subtract
 		wait for 1 ns;
 		
+		cin <=  '1';
 		a	<=	"0000000000010011";
 		b	<=	"0000000000010011";
 		op	<=	"0111";						-- Other Subtract :D
