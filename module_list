@@ -1,4 +1,4 @@
-src/g_components/mux.vhd MUX
+src/util/tri_state.vhd TRI_STATE
 src/memory/memory.vhd MEMORY
 src/alu/components/bit_comparator.vhd BIT_COMPARATOR
 src/alu/components/comparison_component.vhd COMPARISON_COMPONENT
@@ -14,3 +14,6 @@ src/alu/components/vector_norer.vhd VECTOR_NORER
 src/register/register_r.vhd REGISTER_R
 src/register/register_file.vhd REGISTER_FILE
 src/alu/alu.vhd ALU
+src/al/program_counter.vhd PROGRAM_COUNTER
+src/al/address_logic.vhd ADDRESS_LOGIC
+src/al/address_unit.vhd ADDRESS_UNIT
