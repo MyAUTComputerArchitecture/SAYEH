@@ -11,8 +11,10 @@ src/alu/components/xor_component.vhd XOR_COMPONENT
 src/alu/components/shift_l_component.vhd SHIFT_L_COMPONENT
 src/alu/components/shift_r_component.vhd SHIFT_R_COMPONENT
 src/alu/components/vector_norer.vhd VECTOR_NORER
-src/register/register_r.vhd REGISTER_R
+src/register/generic_implementatoin/register_r.vhd REGISTER_R
+src/register/generic_implementatoin/register_s.vhd REGISTER_S
 src/register/register_file.vhd REGISTER_FILE
+src/register/flags.vhd FLAGS
 src/alu/alu.vhd ALU
 src/al/program_counter.vhd PROGRAM_COUNTER
 src/al/address_logic.vhd ADDRESS_LOGIC
