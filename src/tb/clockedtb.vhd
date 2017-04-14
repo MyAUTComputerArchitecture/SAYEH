@@ -19,25 +19,38 @@ architecture CLOCK_TB_ARCH of CLOCK_TB is
 	signal CLK : std_logic := '1';
 	
 	
-	component ADDRESS_UNIT is
-		PORT (
-        Rside : IN std_logic_vector (15 DOWNTO 0);
-        Iside : IN std_logic_vector (7 DOWNTO 0);
-        Address : OUT std_logic_vector (15 DOWNTO 0);
-        clk, ResetPC, PCplusI, PCplus1 : IN std_logic;
-        RplusI, Rplus0, EnablePC : IN std_logic
-    );
+	component FLAGS is
+		port(
+			CLK			:	in	std_logic;						--	Clock signal
+			C_IN		:	in	std_logic;						--	Carry in
+			Z_IN		:	in	std_logic;						--	Zero in
+			C_SET		:	in	std_logic;						--	Carry Flag set
+			C_RESET		:	in 	std_logic;						--	Carry Flag reset
+			Z_SET		:	in	std_logic;						--	Zero Flag set
+			Z_RESET		:	in 	std_logic;						--	Zero Flag reset
+			IL_ENABLE	:	in	std_logic;						--	Imediate Load enable	
+			C_OUT		:	out	std_logic;						--	Carry out
+			Z_OUT		:	out	std_logic						--	Zero out
+		);
 	end component;
-
 	
-	signal rs		: 	std_logic_vector(15 downto 0);
-	signal iss		: 	std_logic_vector(7 downto 0);
-	signal adr		: 	std_logic_vector(15 downto 0);
-	signal resPC, pcI, pc1, rpi, rp0, epc:	std_logic := '0';
+	signal C_IN, Z_IN, C_SET, C_RESET, Z_SET, Z_RESET, IL_ENABLE, C_OUT, Z_OUT : std_logic;
 	
 begin
-	REG : ADDRESS_UNIT
-		port map(rs, iss, adr, CLK, resPC, pc1, pcI, rpi, rp0, epc);
+	FLAGS_inst : component FLAGS
+		port map(
+			CLK       => CLK,
+			C_IN      => C_IN,
+			Z_IN      => Z_IN,
+			C_SET     => C_SET,
+			C_RESET   => C_RESET,
+			Z_SET     => Z_SET,
+			Z_RESET   => Z_RESET,
+			IL_ENABLE => IL_ENABLE,
+			C_OUT     => C_OUT,
+			Z_OUT     => Z_OUT
+		);
+	
 		
 	CLOCK_GEN : process is
 	begin
@@ -60,14 +73,32 @@ begin
 	
 	TEST_BENCH:process
 	begin
-		epc <= '1';
-		resPC <= '1';
-		wait for 100 ns;
-		resPC <= '0';
-		iss <= "00010111";
-		pcI <= '1';
-		wait for 100 ns;
+		C_SET		<= '0';
+		Z_SET		<= '0';
+		IL_ENABLE	<= '0';
+		C_IN		<= '0';
+		Z_IN		<= '0';
+		C_RESET 	<= '1';
+		Z_RESET 	<= '1';
+		wait for 150 ns;
 		
+		C_SET		<= '0';
+		Z_SET		<= '0';
+		IL_ENABLE	<= '1';
+		C_IN		<= '1';
+		Z_IN		<= '0';
+		C_RESET 	<= '0';
+		Z_RESET 	<= '0';
+		wait for 300 ns;
+		
+		C_SET		<= '0';
+		Z_SET		<= '0';
+		IL_ENABLE	<= '0';
+		C_IN		<= '0';
+		Z_IN		<= '0';
+		C_RESET 	<= '1';
+		Z_RESET 	<= '0';
+		wait for 100 ns;
 		wait for 200 ns;
 		assert false report "Reached end of test";
 		wait;
