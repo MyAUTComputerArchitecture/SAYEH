@@ -18,6 +18,16 @@ These instructions have two formations:
 |--|--|--|
 |4 bit|2 bit|2 bit|
 
+|Opcode|Opcode Helper 1|Opcode Helper 2|
+|--|--|--|
+|4 bit|2 bit|2 bit|
+
+Also non immmediate instructions are grouped into these:
+
+* **No operand instructions** : Are instructions that need no operands like : `nop`, `hlt`, `szf`, `czf`, `scf`, `ccf`, `cwp` that need one clock for execution. Their executation state name is EXEC_NOI.
+
+* **Operand needed instructions** : 
+
 ## Instructions as AddressUnit inputs
 
 `lda` :
