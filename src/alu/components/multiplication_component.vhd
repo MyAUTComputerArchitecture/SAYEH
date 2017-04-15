@@ -37,26 +37,24 @@ architecture MULTIPLICATION_COMPONENT_ARCH of MULTIPLICATION_COMPONENT is
 	      );
 	end component;
 	
-	signal multy	: std_logic_vector(COMPONENT_SIZE - 1 downto 0);
-	signal zero_signal	: std_logic_vector(COMPONENT_SIZE - 1 downto 0);
-	signal temp	: std_logic_vector(COMPONENT_SIZE - 1 downto 0);
-    signal out_temp	: std_logic_vector(15 downto 0);
-    signal car : std_logic;
+	type arraySignals is array (0 to COMPONENT_SIZE - 1) of std_logic_vector(COMPONENT_SIZE - 1 downto 0);
+
+	-- signal multy	: std_logic_vector(COMPONENT_SIZE - 1 downto 0);
+	-- signal zero_signal	: std_logic_vector(COMPONENT_SIZE - 1 downto 0);
+	-- signal temp	: std_logic_vector(COMPONENT_SIZE - 1 downto 0);
+    -- signal out_temp	: std_logic_vector(15 downto 0);
+    -- signal car : std_logic;
 	
 begin
-	MAKE_SIGNALS_ZERO:
-	for I in 0 to COMPONENT_SIZE - 1 generate
-		-- multy(I) <= '0';
-		zero_signal(I) <= '0';
-        out_temp(I) <= '0';
-	end generate;
+	-- MAKE_SIGNALS_ZERO:
+	-- for I in 0 to COMPONENT_SIZE - 1 generate
+	-- 	-- multy(I) <= '0';
+	-- 	zero_signal(I) <= '0';
+    --     out_temp(I) <= '0';
+	-- end generate;
 
 	MAKE_SEQUENSE:
-	for I in 0 to 7 generate
-        SHIFT_NUMBER:
-        for J in 0 to COMPONENT_SIZE/2 - 1 generate
-            temp(I + J) <= INPUT1(J) and INPUT2(I);
-        end generate SHIFT_NUMBER;
+	for I in 0 to component_size generate
 
         MODULE: ADDER_SUBTRACTOR_COMPONENT
         generic map(COMPONENT_SIZE)
