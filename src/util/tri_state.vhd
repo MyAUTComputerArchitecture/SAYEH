@@ -29,10 +29,10 @@ begin
 	
 	CHANGE_VALUES : process (DATA_IN, STATE)
 	begin
-		if(STATE = '0') then
-			DATA_OUT <= Z_OUT;
-		else
+		if(STATE = '1') then
 			DATA_OUT <= DATA_IN;
+		else
+			DATA_OUT <= Z_OUT;
 		end if;
 			
 	end process CHANGE_VALUES;
