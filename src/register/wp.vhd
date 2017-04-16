@@ -16,6 +16,7 @@ entity WINDOW_POINTER is
 	port(
 		CLK					:	in	std_logic;
 		WP_ADD				:	in	std_logic_vector(POINTER_SIZE - 1 downto 0);
+		WP_ADD_ENABLE		:	in	std_logic;
 		WP_RESET			:	in	std_logic;
 		WP_OUT				:	out	std_logic_vector(POINTER_SIZE - 1 downto 0)
       );
@@ -64,7 +65,6 @@ architecture WINDOW_POINTER_ARCH of WINDOW_POINTER is
 	signal		TEMP				:	std_logic_vector(POINTER_SIZE - 1 downto 0);
 	signal		REG_IN				:	std_logic_vector(POINTER_SIZE - 1 downto 0);
 	signal		REG_CARRY			:	std_logic;
-	signal		IS_ZERO,N_IS_ZERO	:	std_logic;
 	
 begin
 	
@@ -87,18 +87,6 @@ begin
 			CARRY    => REG_CARRY
 		);
 		
-	ZERO_DETECTOR : component VECTOR_NORER
-		generic map(
-			COMPONENT_SIZE => POINTER_SIZE
-		)
-		port map(
-			INPUT  => WP_ADD,
-			OUTPUT => IS_ZERO
-		);
-		
-	
-	N_IS_ZERO	<= not IS_ZERO;
-	
 	WP_REGISTER : component REGISTER_R
 		generic map(
 			REG_SIZE => POINTER_SIZE
@@ -106,7 +94,7 @@ begin
 		port map(
 			IDATA => REG_IN,
 			CLK   => CLK,
-			LOAD  => N_IS_ZERO,
+			LOAD  => WP_ADD_ENABLE,
 			RESET => WP_RESET,
 			ODATA => REG_OUT
 		);
