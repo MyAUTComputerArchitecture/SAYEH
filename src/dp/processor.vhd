@@ -11,16 +11,27 @@ use IEEE.std_logic_1164.all;
 
 entity PROCESSOR is
 	generic(
-		WORD_SIZE  : integer
+		WORD_SIZE 	 				: integer;
+		REGISTER_FILE_ADDRESS_SIZE	: integer;
+		------------------------ SHADOW RELATED PARAMS -------------------------
+		SHADOW_SIZE					: integer;
+		SHADOW_1_H_INDEX			: integer;
+		SHADOW_1_L_INDEX			: integer;
+		SHADOW_2_H_INDEX			: integer;
+		SHADOW_2_L_INDEX			: integer
 		);
 	port(
-		CLK						:	in	std_logic;
+		CLK							:	in	std_logic;
 		------------------------- MEMORY SIGNALS -------------------------
-		MEM_DATA_READY			:	in	std_logic;
-		WRITE_MEM				:	out	std_logic;
-		READ_MEM				:	out	std_logic;
-		
-		PORTS					:	inout	std_logic_vector(63 downto 0)
+		MEM_DATA_READY				:	in	std_logic;
+		WRITE_MEM					:	out	std_logic;
+		READ_MEM					:	out	std_logic;
+		MEMORY_BUS					:	inout	std_logic_vector(WORD_SIZE - 1 downto 0);
+		ADDRESS_BUS					:	out	std_logic_vector(WORD_SIZE - 1 downto 0);
+		------------------------- EXTERNAL SIGNALS -------------------------
+		EXTERNAL_RESET				:	out	std_logic;
+		------------------------- I/O PORTS SIGNALS -------------------------
+		PORTS						:	inout	std_logic_vector(63 downto 0)
       );
 end entity;
 
@@ -51,6 +62,19 @@ architecture PROCESSOR_ARCH of PROCESSOR is
 		);
 	end component;
 	
+	component WINDOW_POINTER is
+		generic(
+			POINTER_SIZE  		:	integer
+			);
+		port(
+			CLK					:	in	std_logic;
+			WP_ADD				:	in	std_logic_vector(POINTER_SIZE - 1 downto 0);
+			WP_ADD_ENABLE		:	in	std_logic;
+			WP_RESET			:	in	std_logic;
+			WP_OUT				:	out	std_logic_vector(POINTER_SIZE - 1 downto 0)
+	      );
+	end component;
+
 	component REGISTER_R is
 		generic(
 			REG_SIZE : integer := 2											-- Size of the register
@@ -106,7 +130,81 @@ architecture PROCESSOR_ARCH of PROCESSOR is
 			RIGHT_OUT	: out std_logic_vector(REGESTER_SIZE - 1 downto 0)						--	Output number 2
 			);
 	end component;
+	
+	component CONTROL_UNIT is
+		generic(
+			WORD_SIZE       : integer; -- This indicates the operations' size
+			WP_ADDRESS_SIZE : integer
+		);
+		port(
+			-- ----------- SIGNALS FROM OUT OF PROCESSOR --------------
+			CLK                      : in  std_logic;
+			EXTERNAL_RESET           : in  std_logic;
+			-- --------------- MEMORY RELATED SIGNALS -----------------
+			MEM_DATA_READY           : in  std_logic;
+			WRITE_MEM                : out std_logic;
+			READ_MEM                 : out std_logic;
+			-- ---------------- FLAGS RELATED SIGNALS -----------------
+			Z_IN                     : in  std_logic;
+			C_IN                     : in  std_logic;
+			C_OUT                    : out std_logic;
+			Z_OUT                    : out std_logic;
+			C_SET                    : out std_logic;
+			C_RESET                  : out std_logic;
+			Z_SET                    : out std_logic;
+			Z_RESET                  : out std_logic;
+			IL_ENABLE                : out std_logic;
+			-- ------------------ AL RELATED SIGNALS ------------------
+			RESET_PC                 : out std_logic;
+			PC_PLUS_I                : out std_logic;
+			PC_PLUS_1                : out std_logic;
+			R_PLUS_I                 : out std_logic;
+			R_PLUS_0                 : out std_logic;
+			ENABLE_PC                : out std_logic;
+			-- ------------------ WP RELATED SIGNALS ------------------
+			WP_ADD_ENABLE			 : out std_logic;
+			WP_RESET                 : out std_logic;
+			-- ---------------------- SHADOW --------------------------
+			SHADOW                   : out std_logic;
+			-- ------------------ IR RELATED SIGNALS ------------------
+			IR_INPUT                 : in  std_logic_vector(WORD_SIZE - 1 downto 0);
+			IR_LOAD                  : out std_logic;
+			-- --------------- DATABUS CONTROL SIGNALS ----------------
+			ADDRESS_ON_BUS           : out std_logic;
+			RS_ON_ADDRESS_UNIT_RSIDE : out std_logic;
+			RD_ON_ADDRESS_UNIT_RSIDE : out std_logic
+		);
+	end component;
+	
+	------------------------ FLAGS SIGNALS -----------------------------------
+	signal C_IN							:	std_logic;
+	signal Z_IN							:	std_logic;
+	signal C_OUT						:	std_logic;
+	signal Z_OUT						:	std_logic;
+	signal FLAGS_IL_ENABLE				:	std_logic;
+	signal C_SET						:	std_logic;
+	signal Z_SET						:	std_logic;
+	signal C_RESET						:	std_logic;
+	signal Z_RESET						:	std_logic;
+	------------------------ CONTROL SIGNALS -----------------------------------
+	signal ALU_ON_DATA_BUS				:	std_logic;
+	
+	-------------------------- ALU SIGNALS -----------------------------------
+	signal ALU_OUT						:	std_logic_vector(WORD_SIZE - 1 downto 0);
+	
+	------------------------ SHADOW SIGNALS -----------------------------------
+	signal SHADOW						:	std_logic;
+	signal SHADOW_OUT					:	std_logic_vector(SHADOW_SIZE * 2 - 1 downto 0);
+	
+	------------------------ IR SIGNALS -----------------------------------
+	signal IR_OUT						:	std_logic_vector(WORD_SIZE - 1 downto 0);
+	signal IR_LOAD						:	std_logic;
+	
+	------------------------ BUS SIGNALS -----------------------------------
+	signal DATA_BUS						:	std_logic_vector(WORD_SIZE - 1 downto 0);
+	
 begin
+	
 	FLAGS_INS : component FLAGS
 		port map(
 			CLK       => CLK,
@@ -116,11 +214,25 @@ begin
 			C_RESET   => C_RESET,
 			Z_SET     => Z_SET,
 			Z_RESET   => Z_RESET,
-			IL_ENABLE => IL_ENABLE,
+			IL_ENABLE => FLAGS_IL_ENABLE,
 			C_OUT     => C_OUT,
 			Z_OUT     => Z_OUT
 		);
 		
+	-------------------------- CONNECTING CONTROL SIGNALS --------------------------
+	DATA_BUS	<=	MEMORY_BUS;
+	
+	ALU_OUT_TRI_STATE : component TRI_STATE
+		generic map(
+			COMPONENT_SIZE => WORD_SIZE
+		)
+		port map(
+			DATA_IN  => ALU_OUT,
+			STATE    => ALU_ON_DATA_BUS,
+			DATA_OUT => DATA_BUS
+		);
+		
+	
 	IR : component REGISTER_R
 		generic map(
 			REG_SIZE => REG_SIZE
@@ -128,22 +240,23 @@ begin
 		port map(
 			IDATA => IDATA,
 			CLK   => CLK,
-			LOAD  => LOAD,
-			RESET => RESET,
-			ODATA => ODATA
+			LOAD  => IR_LOAD,
+			RESET => '0',
+			ODATA => IR_OUT
 		);
 		
-	WP : component REGISTER_R
+	WP : component WINDOW_POINTER
 		generic map(
-			REG_SIZE => REG_SIZE
+			POINTER_SIZE => REGISTER_FILE_ADDRESS_SIZE
 		)
 		port map(
-			IDATA => IDATA,
-			CLK   => CLK,
-			LOAD  => LOAD,
-			RESET => RESET,
-			ODATA => ODATA
+			CLK           => CLK,
+			WP_ADD        => WP_ADD,
+			WP_ADD_ENABLE => WP_ADD_ENABLE,
+			WP_RESET      => WP_RESET,
+			WP_OUT        => WP_OUT
 		);
+		
 		
 	REGISTER_FILE_INS : component REGISTER_FILE
 		generic map(
@@ -161,5 +274,46 @@ begin
 			RIGHT_OUT  => RIGHT_OUT
 		);
 		
+	CONTROL_UNIT_INS : component CONTROL_UNIT
+		generic map(
+			WORD_SIZE       => WORD_SIZE,
+			WP_ADDRESS_SIZE => 6
+		)
+		port map(
+			CLK                      => CLK,
+			EXTERNAL_RESET           => EXTERNAL_RESET,
+			MEM_DATA_READY           => MEM_DATA_READY,
+			WRITE_MEM                => WRITE_MEM,
+			READ_MEM                 => READ_MEM,
+			Z_IN                     => Z_IN,
+			C_IN                     => C_IN,
+			C_OUT                    => C_OUT,
+			Z_OUT                    => Z_OUT,
+			C_SET                    => C_SET,
+			C_RESET                  => C_RESET,
+			Z_SET                    => Z_SET,
+			Z_RESET                  => Z_RESET,
+			IL_ENABLE                => FLAGS_IL_ENABLE,
+			RESET_PC                 => RESET_PC,
+			PC_PLUS_I                => PC_PLUS_I,
+			PC_PLUS_1                => PC_PLUS_1,
+			R_PLUS_I                 => R_PLUS_I,
+			R_PLUS_0                 => R_PLUS_0,
+			ENABLE_PC                => ENABLE_PC,
+			WP_ADD_ENABLE            => WP_ADD,
+			WP_RESET                 => WP_RESET,
+			SHADOW                   => SHADOW,
+			IR_INPUT                 => IR_INPUT,
+			IR_LOAD                  => IR_LOAD,
+			ADDRESS_ON_BUS           => ADDRESS_ON_BUS,
+			RS_ON_ADDRESS_UNIT_RSIDE => RS_ON_ADDRESS_UNIT_RSIDE,
+			RD_ON_ADDRESS_UNIT_RSIDE => RD_ON_ADDRESS_UNIT_RSIDE
+		);
 		
+		SHADOW_MUX : with SHADOW select
+			SHADOW_OUT <=
+				'0' when choice1,
+				'1' when choice1,
+				expression2 when others;
+				
 end architecture;
