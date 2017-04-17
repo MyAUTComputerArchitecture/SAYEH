@@ -21,7 +21,7 @@ entity PROCESSOR is
 		SHADOW_2_L_INDEX			: integer;
 		----------------------- IMMEDIATE RELATED PARAMS -----------------------
 		IMMEDIATE_H_INDEX			: integer;
-		IMMEDIATE_L_INDEX			: integer;
+		IMMEDIATE_L_INDEX			: integer
 		);
 	port(
 		CLK							:	in	std_logic;
@@ -147,7 +147,7 @@ architecture PROCESSOR_ARCH of PROCESSOR is
 			MEM_DATA_READY           : in  std_logic;
 			WRITE_MEM                : out std_logic;
 			READ_MEM                 : out std_logic;
-			-- ---------------- FLAGS RELATED SIGNALS -----------------
+			------------------- FLAGS RELATED SIGNALS -----------------
 			Z_IN                     : in  std_logic;
 			C_IN                     : in  std_logic;
 			C_OUT                    : out std_logic;
@@ -164,9 +164,14 @@ architecture PROCESSOR_ARCH of PROCESSOR is
 			R_PLUS_I                 : out std_logic;
 			R_PLUS_0                 : out std_logic;
 			ENABLE_PC                : out std_logic;
+			-- ------------------ ALU RELATED SIGNALS ------------------
+			ALU_OPERATION			 : out std_logic_vector(3 downto 0);
 			-- ------------------ WP RELATED SIGNALS ------------------
 			WP_ADD_ENABLE			 : out std_logic;
 			WP_RESET                 : out std_logic;
+			---------------- REGISTER FILE RELATED SIGNALS ------------
+			RF_L_WRITE				 : out std_logic;
+			RF_H_WRITE				 : out std_logic;
 			-- ---------------------- SHADOW --------------------------
 			SHADOW                   : out std_logic;
 			-- ------------------ IR RELATED SIGNALS ------------------
@@ -179,7 +184,7 @@ architecture PROCESSOR_ARCH of PROCESSOR is
 		);
 	end component;
 	
-	------------------------ FLAGS SIGNALS -----------------------------------
+	-------------------------- FLAGS SIGNALS -----------------------------------
 	signal C_IN							:	std_logic;
 	signal Z_IN							:	std_logic;
 	signal C_OUT						:	std_logic;
@@ -189,12 +194,23 @@ architecture PROCESSOR_ARCH of PROCESSOR is
 	signal Z_SET						:	std_logic;
 	signal C_RESET						:	std_logic;
 	signal Z_RESET						:	std_logic;
+	----------------------- ADDRESS UNIT RELATED SIGNALS -----------------------
+	signal RESET_PC						:	std_logic;
+	signal PC_PLUS_I					:	std_logic;
+	signal PC_PLUS_1					:	std_logic;
+	signal R_PLUS_I						:	std_logic;
+	signal R_PLUS_0						:	std_logic;
+	signal ENABLE_PC					:	std_logic;
+	signal ADDRESS_UNIT_OUT				:	std_logic_vector(WORD_SIZE - 1 downto 0);
+	
 	------------------------ CONTROL SIGNALS -----------------------------------
 	signal ALU_ON_DATA_BUS				:	std_logic;
-	
+	signal ADDRESS_ON_DATA_BUS			:	std_logic;
+	signal RS_ON_ADDRESS_UNIT_RSIDE		:	std_logic;
+	signal RD_ON_ADDRESS_UNIT_RSIDE		:	std_logic;
 	-------------------------- ALU SIGNALS -----------------------------------
+	signal ALU_OPERATION				:	std_logic_vector(3 downto 0);
 	signal ALU_OUT						:	std_logic_vector(WORD_SIZE - 1 downto 0);
-	
 	------------------------ SHADOW SIGNALS -----------------------------------
 	signal SHADOW						:	std_logic;
 	signal SHADOW_OUT					:	std_logic_vector(SHADOW_SIZE * 2 - 1 downto 0);
@@ -205,10 +221,17 @@ architecture PROCESSOR_ARCH of PROCESSOR is
 	
 	------------------------- BUS SIGNALS -----------------------------------
 	signal DATA_BUS						:	std_logic_vector(WORD_SIZE - 1 downto 0);
+	signal ADDRESS_UNIT_RSIDE_BUS		:	std_logic_vector(WORD_SIZE - 1 downto 0);
 	------------------------- WP SIGNALS -----------------------------------
 	signal WP_ADD_ENABLE				:	std_logic;
 	signal WP_RESET						:	std_logic;
-	
+	signal WP_OUT						:	std_logic_vector(REGISTER_FILE_ADDRESS_SIZE - 1 downto 0);
+	-------------------- REGISTER FILE SIGNALS -----------------------------
+	signal RF_L_WRITE					:	std_logic;
+	signal RF_H_WRITE					:	std_logic;
+
+	signal LEFT_REGISTER_FROM_RF		:	std_logic_vector(WORD_SIZE - 1 downto 0);
+	signal RIGHT_REGISTER_FROM_RF		:	std_logic_vector(WORD_SIZE - 1 downto 0);
 begin
 	
 	FLAGS_INS : component FLAGS
@@ -226,7 +249,8 @@ begin
 		);
 		
 	-------------------------- CONNECTING CONTROL SIGNALS --------------------------
-	DATA_BUS	<=	MEMORY_BUS;
+	DATA_BUS		<=	MEMORY_BUS;
+	ADDRESS_BUS		<=	ADDRESS_UNIT_OUT;
 	
 	ALU_OUT_TRI_STATE : component TRI_STATE
 		generic map(
@@ -238,13 +262,42 @@ begin
 			DATA_OUT => DATA_BUS
 		);
 		
+	RIGHT_REGISTER_ON_ADDRESS_UNIT_RSIDE_BUS_TRI_STATE : component TRI_STATE
+		generic map(
+			COMPONENT_SIZE => WORD_SIZE
+		)
+		port map(
+			DATA_IN  => RIGHT_REGISTER_FROM_RF,
+			STATE    => RS_ON_ADDRESS_UNIT_RSIDE,
+			DATA_OUT => ADDRESS_UNIT_RSIDE_BUS
+		);
+	
+	LEFT_REGISTER_ON_ADDRESS_UNIT_RSIDE_BUS_TRI_STATE : component TRI_STATE
+		generic map(
+			COMPONENT_SIZE => WORD_SIZE
+		)
+		port map(
+			DATA_IN  => LEFT_REGISTER_FROM_RF,
+			STATE    => RD_ON_ADDRESS_UNIT_RSIDE,
+			DATA_OUT => ADDRESS_UNIT_RSIDE_BUS
+		);
+		
+	ADDRESS_ON_DATA_BUS_TRI_STATE : component TRI_STATE
+		generic map(
+			COMPONENT_SIZE => WORD_SIZE
+		)
+		port map(
+			DATA_IN  => ADDRESS_UNIT_OUT,
+			STATE    => ADDRESS_ON_DATA_BUS,
+			DATA_OUT => DATA_BUS
+		);
 	
 	IR : component REGISTER_R
 		generic map(
-			REG_SIZE => REG_SIZE
+			REG_SIZE => WORD_SIZE
 		)
 		port map(
-			IDATA => IDATA,
+			IDATA => DATA_BUS,
 			CLK   => CLK,
 			LOAD  => IR_LOAD,
 			RESET => '0',
@@ -263,22 +316,6 @@ begin
 			WP_OUT        => WP_OUT
 		);
 		
-		
-	REGISTER_FILE_INS : component REGISTER_FILE
-		generic map(
-			REGESTER_SIZE => REGESTER_SIZE,
-			ADDRESS_SIZE  => ADDRESS_SIZE
-		)
-		port map(
-			IDATA      => IDATA,
-			CLK        => CLK,
-			WP_IN      => WP_IN,
-			RF_L_WRITE => RF_L_WRITE,
-			RF_H_WRITE => RF_H_WRITE,
-			SELECTOR   => SELECTOR,
-			LEFT_OUT   => LEFT_OUT,
-			RIGHT_OUT  => RIGHT_OUT
-		);
 		
 	CONTROL_UNIT_INS : component CONTROL_UNIT
 		generic map(
@@ -306,20 +343,66 @@ begin
 			R_PLUS_I                 => R_PLUS_I,
 			R_PLUS_0                 => R_PLUS_0,
 			ENABLE_PC                => ENABLE_PC,
+			ALU_OPERATION			 =>	ALU_OPERATION,
 			WP_ADD_ENABLE            => WP_ADD_ENABLE,
 			WP_RESET                 => WP_RESET,
+			RF_L_WRITE				 => RF_L_WRITE,
+			RF_H_WRITE				 => RF_H_WRITE,
 			SHADOW                   => SHADOW,
-			IR_INPUT                 => IR_INPUT,
+			IR_INPUT                 => IR_OUT,
 			IR_LOAD                  => IR_LOAD,
-			ADDRESS_ON_BUS           => ADDRESS_ON_BUS,
+			ADDRESS_ON_BUS           => ADDRESS_ON_DATA_BUS,
 			RS_ON_ADDRESS_UNIT_RSIDE => RS_ON_ADDRESS_UNIT_RSIDE,
 			RD_ON_ADDRESS_UNIT_RSIDE => RD_ON_ADDRESS_UNIT_RSIDE
 		);
 		
-		SHADOW_MUX : with SHADOW select
-			SHADOW_OUT <=
-				'0' when choice1,
-				'1' when choice1,
-				expression2 when others;
+	REGISTER_FILE_inst : component REGISTER_FILE
+		generic map(
+			REGESTER_SIZE => WORD_SIZE,
+			ADDRESS_SIZE  => REGISTER_FILE_ADDRESS_SIZE
+		)
+		port map(
+			IDATA      => DATA_BUS,
+			CLK        => CLK,
+			WP_IN      => WP_OUT,
+			RF_L_WRITE => RF_L_WRITE,
+			RF_H_WRITE => RF_H_WRITE,
+			SELECTOR   => SHADOW_OUT,
+			LEFT_OUT   => LEFT_REGISTER_FROM_RF,
+			RIGHT_OUT  => RIGHT_REGISTER_FROM_RF
+		);
+		
+	ALU_INS : component ALU
+		generic map(
+			COMPONENT_SIZE => WORD_SIZE
+		)
+		port map(
+			CARRY_IN  => C_OUT,
+			INPUT1    => LEFT_REGISTER_FROM_RF,
+			INPUT2    => RIGHT_REGISTER_FROM_RF,
+			OPERATION => ALU_OPERATION,
+			OUTPUT    => ALU_OUT,
+			CARRY_OUT => C_IN,
+			ZERO_OUT  => Z_IN
+		);
+	
+	ADDRESS_UNIT_INS : component ADDRESS_UNIT
+		port map(
+			Rside    => ADDRESS_UNIT_RSIDE_BUS,
+			Iside    => IR_OUT(IMMEDIATE_H_INDEX downto IMMEDIATE_L_INDEX),
+			Address  => Address,
+			clk      => CLK,
+			ResetPC  => RESET_PC,
+			PCplusI  => PC_PLUS_I,
+			PCplus1  => PC_PLUS_1,
+			RplusI   => R_PLUS_I,
+			Rplus0   => R_PLUS_0,
+			EnablePC => ENABLE_PC
+		);
+	SHADOW_MUX : with SHADOW select
+		SHADOW_OUT <=
+			'0' when IR_OUT(SHADOW_1_H_INDEX downto SHADOW_1_L_INDEX),
+			'1' when IR_OUT(SHADOW_2_H_INDEX downto SHADOW_2_L_INDEX),
+			IR_OUT(SHADOW_1_H_INDEX downto SHADOW_1_L_INDEX) when others;
 				
 end architecture;
