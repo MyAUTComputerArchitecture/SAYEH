@@ -40,7 +40,7 @@ entity CONTROL_UNIT is
 		R_PLUS_0                 : out std_logic;
 		ENABLE_PC                : out std_logic;
 		-- ------------------ WP RELATED SIGNALS ------------------
-		WP_ADD                   : out std_logic_vector(WP_ADDRESS_SIZE - 1 downto 0);
+		WP_ADD_ENABLE			 : out std_logic;
 		WP_RESET                 : out std_logic;
 		-- ---------------------- SHADOW --------------------------
 		SHADOW                   : out std_logic;
