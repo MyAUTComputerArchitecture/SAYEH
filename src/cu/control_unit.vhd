@@ -61,7 +61,7 @@ end entity;
 
 architecture CONTROL_UNIT_ARCH of CONTROL_UNIT is
 	type CU_STATE_TYPE is (
-		FETCH_0, FETCH_1,
+		FETCH_0,
 		DECODE,
 		EXEC_NOP, EXEC_HLT, EXEC_SZF, EXEC_CZF, EXEC_SCF, EXEC_CCF, EXEC_CWP,
 		EXEC_JPR, EXEC_BRZ, EXEC_BRC, EXEC_AWP,
@@ -106,9 +106,6 @@ begin
 						PC_PLUS_1        <= '0';
 						R_PLUS_I         <= '0';
 						R_PLUS_0         <= '0';
-						CURRENT_CU_STATE <= FETCH_1;
-
-					when FETCH_1 =>
 						if MEM_DATA_READY = '1' then
 							IR_LOAD          <= '1';
 							CURRENT_CU_STATE <= DECODE;
@@ -153,6 +150,8 @@ begin
 											when "01" => CURRENT_CU_STATE <= EXEC_BRC;
 											when "10" => CURRENT_CU_STATE <= EXEC_AWP;
 										end case;
+									when "11" =>
+										null;
 								end case;
 							when "0001" =>
 								CURRENT_CU_STATE <= EXEC_MVR; 
