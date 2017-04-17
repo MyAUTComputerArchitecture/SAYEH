@@ -39,9 +39,14 @@ entity CONTROL_UNIT is
 		R_PLUS_I                 : out std_logic;
 		R_PLUS_0                 : out std_logic;
 		ENABLE_PC                : out std_logic;
+		-- ------------------ ALU RELATED SIGNALS ------------------
+		ALU_OPERATION			 : out std_logic_vector(3 downto 0);				--	This is not generic cause it can't be :D
 		-- ------------------ WP RELATED SIGNALS ------------------
 		WP_ADD_ENABLE			 : out std_logic;
 		WP_RESET                 : out std_logic;
+		---------------- REGISTER FILE RELATED SIGNALS ------------
+		RF_L_WRITE				 : out std_logic;
+		RF_H_WRITE				 : out std_logic;
 		-- ---------------------- SHADOW --------------------------
 		SHADOW                   : out std_logic;
 		-- ------------------ IR RELATED SIGNALS ------------------
