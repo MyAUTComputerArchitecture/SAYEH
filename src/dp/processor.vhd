@@ -18,7 +18,10 @@ entity PROCESSOR is
 		SHADOW_1_H_INDEX			: integer;
 		SHADOW_1_L_INDEX			: integer;
 		SHADOW_2_H_INDEX			: integer;
-		SHADOW_2_L_INDEX			: integer
+		SHADOW_2_L_INDEX			: integer;
+		----------------------- IMMEDIATE RELATED PARAMS -----------------------
+		IMMEDIATE_H_INDEX			: integer;
+		IMMEDIATE_L_INDEX			: integer;
 		);
 	port(
 		CLK							:	in	std_logic;
@@ -200,8 +203,11 @@ architecture PROCESSOR_ARCH of PROCESSOR is
 	signal IR_OUT						:	std_logic_vector(WORD_SIZE - 1 downto 0);
 	signal IR_LOAD						:	std_logic;
 	
-	------------------------ BUS SIGNALS -----------------------------------
+	------------------------- BUS SIGNALS -----------------------------------
 	signal DATA_BUS						:	std_logic_vector(WORD_SIZE - 1 downto 0);
+	------------------------- WP SIGNALS -----------------------------------
+	signal WP_ADD_ENABLE				:	std_logic;
+	signal WP_RESET						:	std_logic;
 	
 begin
 	
@@ -251,7 +257,7 @@ begin
 		)
 		port map(
 			CLK           => CLK,
-			WP_ADD        => WP_ADD,
+			WP_ADD        => IR_OUT(IMMEDIATE_H_INDEX downto IMMEDIATE_H_INDEX),
 			WP_ADD_ENABLE => WP_ADD_ENABLE,
 			WP_RESET      => WP_RESET,
 			WP_OUT        => WP_OUT
@@ -300,7 +306,7 @@ begin
 			R_PLUS_I                 => R_PLUS_I,
 			R_PLUS_0                 => R_PLUS_0,
 			ENABLE_PC                => ENABLE_PC,
-			WP_ADD_ENABLE            => WP_ADD,
+			WP_ADD_ENABLE            => WP_ADD_ENABLE,
 			WP_RESET                 => WP_RESET,
 			SHADOW                   => SHADOW,
 			IR_INPUT                 => IR_INPUT,
