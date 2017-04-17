@@ -46,9 +46,9 @@ echo "${PURPLE}Testbench compiling phase${NC}"
 
 # Compiling test bench file and producing vcd file to show the wave
 ghdl -a ../src/tb/main_tb.vhd
-echo "${GREEN}/tb/tb.vhd analyzed.${NC}"
-ghdl -e TB
-echo "${GREEN}module TB evaluated.${NC}"
+echo "${GREEN}/tb/main_tb.vhd analyzed.${NC}"
+ghdl -e MAIN_TB
+echo "${GREEN}module MAIN_TB evaluated.${NC}"
 
 echo "${PURPLE}Testbench wave exporting phase${NC}"
 ghdl -r TB --vcd=wave.vcd
