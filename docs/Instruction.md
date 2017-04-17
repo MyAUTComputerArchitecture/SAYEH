@@ -7,6 +7,7 @@ Every instruction has 16 bits or 8 bits. 16 bit instructions is called IMMEDIATE
 ### IMMEDIATE INSTRUCTIONS
 
 These instructions are a formation like this:
+
 |Opcode|Destination register id|Op helper code|Immediate value|
 |--|--|--|--|
 |4 bit|2 bit|2 bit|8 bit|
@@ -14,6 +15,7 @@ These instructions are a formation like this:
 ### NON IMMEDIATE INSTRUCTIONS
 
 These instructions have two formations:
+
 |Opcode|Destination register ID|Source register ID|
 |--|--|--|
 |4 bit|2 bit|2 bit|
