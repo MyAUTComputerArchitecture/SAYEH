@@ -51,7 +51,7 @@ ghdl -e MAIN_TB
 echo "${GREEN}module MAIN_TB evaluated.${NC}"
 
 echo "${PURPLE}Testbench wave exporting phase${NC}"
-ghdl -r TB --vcd=wave.vcd
+ghdl -r MAIN_TB --vcd=wave.vcd
 
 if [ $platform = 'linux' ]; then
   gtkwave wave.vcd
