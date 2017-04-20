@@ -20,3 +20,5 @@ src/alu/alu.vhd ALU
 src/al/program_counter.vhd PROGRAM_COUNTER
 src/al/address_logic.vhd ADDRESS_LOGIC
 src/al/address_unit.vhd ADDRESS_UNIT
+src/cu/control_unit.vhd CONTROL_UNIT
+src/dp/processor.vhd PROCESSOR
