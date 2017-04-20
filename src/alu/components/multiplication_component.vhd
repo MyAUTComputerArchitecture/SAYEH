@@ -19,6 +19,7 @@ entity MULTIPLICATION_COMPONENT is
 		INPUT1		: in std_logic_vector(COMPONENT_SIZE/2 - 1 downto 0);
 		INPUT2		: in std_logic_vector(COMPONENT_SIZE/2 - 1 downto 0);
 		OUTPUT		: out std_logic_vector(COMPONENT_SIZE - 1 downto 0)
+	
 	);
 end entity;
 
@@ -37,30 +38,45 @@ architecture MULTIPLICATION_COMPONENT_ARCH of MULTIPLICATION_COMPONENT is
 	      );
 	end component;
 	
-	type arraySignals is array (0 to COMPONENT_SIZE - 1) of std_logic_vector(COMPONENT_SIZE - 1 downto 0);
+	type arraySignals is array (0 to COMPONENT_SIZE/2 - 1) of std_logic;
+	type arr1 is array (0 to COMPONENT_SIZE/2 - 1) of std_logic_vector(COMPONENT_SIZE/2 - 1 downto 0);
+	signal cables 	: arraySignals;
+	signal khar, gav, ain, summ : arr1;
 
-	-- signal multy	: std_logic_vector(COMPONENT_SIZE - 1 downto 0);
-	-- signal zero_signal	: std_logic_vector(COMPONENT_SIZE - 1 downto 0);
-	-- signal temp	: std_logic_vector(COMPONENT_SIZE - 1 downto 0);
-    -- signal out_temp	: std_logic_vector(15 downto 0);
-    -- signal car : std_logic;
 	
 begin
-	-- MAKE_SIGNALS_ZERO:
-	-- for I in 0 to COMPONENT_SIZE - 1 generate
-	-- 	-- multy(I) <= '0';
-	-- 	zero_signal(I) <= '0';
-    --     out_temp(I) <= '0';
-	-- end generate;
+	MAKING_IN:
+	for W in 0 to COMPONENT_SIZE/2 - 1 generate
+		ANDING:
+		for J in 0 to COMPONENT_SIZE/2 - 1 generate
+			gav(W)(j) <= INPUT1(J) and INPUT2(W);
+		end generate;
+	end generate;
 
-	MAKE_SEQUENSE:
-	for I in 0 to component_size generate
+	ain(0)(COMPONENT_SIZE/2 - 1) <= '0';
 
-        MODULE: ADDER_SUBTRACTOR_COMPONENT
-        generic map(COMPONENT_SIZE)
-        port map('0', multy, "0000000000011001", '0', multy, car);
-		-- port map('0', multy, temp, '0', out_temp, car);
-	end generate MAKE_SEQUENSE;
+	KHAAR:
+		for L in 0 to COMPONENT_SIZE/2 - 2 generate
+			ain(0)(L) <= gav(0)(L + 1);
+		end generate;
+		output(0) <= gav(0)(0);
+	CONNECT:
+	for I in 0 to COMPONENT_SIZE/2 - 2 generate
+		MODULE: ADDER_SUBTRACTOR_COMPONENT
+		generic map (COMPONENT_SIZE/2)
+		port map('0',gav(I + 1) ,ain(I) , '0', summ(I), cables(I));
+
+		ain(I + 1)(COMPONENT_SIZE/2 - 1) <= cables(I);
+		MAKING:
+		for K in 0 to COMPONENT_SIZE/2 - 2 generate
+			ain(I + 1)(K) <= summ(I)(K + 1);
+		end generate;
+
+		output(I + 1) <= summ(I)(0);
+	end generate;
 	
-    OUTPUT <= multy;
+	AH:
+	for Q in 0 to COMPONENT_SIZE/2 - 1 generate
+		output(Q + COMPONENT_SIZE/2) <= summ(COMPONENT_SIZE/2 -2)(Q);
+	end generate;
 end architecture;
