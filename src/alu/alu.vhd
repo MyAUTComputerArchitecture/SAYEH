@@ -116,6 +116,18 @@ architecture ALU_ARCH of ALU is
 			OUTPUT		: out std_logic
 	      );
 	end component;
+	component MULTIPLICATION_COMPONENT is
+	generic(
+		COMPONENT_SIZE	: integer
+	);
+	
+	port(
+		INPUT1		: in std_logic_vector(COMPONENT_SIZE/2 - 1 downto 0);
+		INPUT2		: in std_logic_vector(COMPONENT_SIZE/2 - 1 downto 0);
+		OUTPUT		: out std_logic_vector(COMPONENT_SIZE - 1 downto 0)
+	
+	);
+end component;
 	
 	signal UNKNOWN_SIG					: std_logic_vector(COMPONENT_SIZE - 1 downto 0);
 	signal ZERO_SIG						: std_logic_vector(COMPONENT_SIZE - 1 downto 0);
@@ -131,6 +143,7 @@ architecture ALU_ARCH of ALU is
 	signal COMPARISON_COMPONENT_CFLAG	: std_logic;
 	signal COMPARISON_COMPONENT_ZFLAG	: std_logic;
 	signal TWOS_COMPLEMENT_COMPONENT_OUT: std_logic_vector(COMPONENT_SIZE - 1 downto 0);
+	signal MULTIPLICATION_COMPONENT_OUT : std_logic_vector(COMPONENT_SIZE - 1 downto 0);
 	
 	
 	signal OUTPUT_TEMP				: std_logic_vector(COMPONENT_SIZE - 1 downto 0);
@@ -231,7 +244,16 @@ begin
 			INPUT  => INPUT1,
 			OUTPUT => TWOS_COMPLEMENT_COMPONENT_OUT
 		);
-		
+	
+	MULTIPLICATION_COMPONENT_INS : component MULTIPLICATION_COMPONENT
+		generic map(
+			COMPONENT_SIZE	=> COMPONENT_SIZE
+		)
+		port map(
+			INPUT1 => INPUT1(COMPONENT_SIZE/2 - 1 downto 0),
+			INPUT2 => INPUT2(COMPONENT_SIZE/2 - 1 downto 0),
+			OUTPUT => MULTIPLICATION_COMPONENT_OUT
+		); 
 		
 	OUTPUT <= OUTPUT_TEMP;
 	
@@ -247,6 +269,7 @@ begin
 			ADDER_SUB_COMPONENT_OUT when "0110",
 			ADDER_SUB_COMPONENT_OUT when "0111",
 			TWOS_COMPLEMENT_COMPONENT_OUT when "1000",
+			MULTIPLICATION_COMPONENT_OUT when "1001",
 			
 			UNKNOWN_SIG when others;
 	
