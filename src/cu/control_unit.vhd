@@ -68,7 +68,7 @@ architecture CONTROL_UNIT_ARCH of CONTROL_UNIT is
 		HLT,
 		EXEC_NOP, EXEC_HLT, EXEC_SZF, EXEC_CZF, EXEC_SCF, EXEC_CCF, EXEC_CWP,
 		EXEC_JPR, EXEC_BRZ, EXEC_BRC, EXEC_AWP,
-		EXEC_MVR, EXEC_LDA, EXEC_STA, EXEC_INP, EXEC_OUP, EXEC_AND, EXEC_ORR, EXEC_NOT, EXEC_SHL, EXEC_SHR, EXEC_ADD, EXEC_SUB, EXEC_MUL, EXEC_CMP,
+		EXEC_MVR, EXEC_LDA, EXEC_STA, EXEC_INP, EXEC_OUP, EXEC_AND, EXEC_ORR, EXEC_NOT, EXEC_SHL, EXEC_SHR, EXEC_ADD, EXEC_ADD2, EXEC_SUB, EXEC_MUL, EXEC_CMP,
 		EXEC_MIL, EXEC_MIH, EXEC_SPC, EXEC_JPA,
 		END_OF_NOP,
 		WRITE_BACK,
@@ -82,7 +82,7 @@ architecture CONTROL_UNIT_ARCH of CONTROL_UNIT is
 	signal OPCODE_HELPER2   : std_logic_vector(1 downto 0);
 	signal OPCODE           : std_logic_vector(3 downto 0);
 	
-	signal THIS_FUCKING_STATE	:	std_logic_vector(5 downto 0);
+	signal THIS_LOGGING_STATE	:	std_logic_vector(5 downto 0);
 
 begin
 
@@ -90,7 +90,7 @@ begin
 	begin
 		if CLK'event and CLK = '1' then
 			if EXTERNAL_RESET = '1' then
-				THIS_FUCKING_STATE		<=	"XXXXXX";
+				THIS_LOGGING_STATE		<=	"XXXXXX";
 				WRITE_MEM                <= '0';
 				READ_MEM                 <= '0';
 				
@@ -129,8 +129,9 @@ begin
 				
 				WP_RESET                 <= '0';
 				case NEXT_CU_STATE is
+				
 				when FETCH_0 =>
-					THIS_FUCKING_STATE		<=	"000000";
+					THIS_LOGGING_STATE		<=	"000000";
 					READ_MEM <= '1';
 					-- -- AL_OUT <- PC ----
 					RESET_PC         <= '0';
@@ -141,12 +142,15 @@ begin
 					
 					IR_LOAD          <= '1';
 					if MEM_DATA_READY = '1' then
-						NEXT_CU_STATE <= DECODE;
+						NEXT_CU_STATE <= FETCH_1;
 					end if;
-				when DECODE =>
-					THIS_FUCKING_STATE		<=	"000010";
-					READ_MEM	<=	'0';
+				when FETCH_1 =>
+					NEXT_CU_STATE <= DECODE;
 					IR_LOAD <= '0';
+				when DECODE =>
+					THIS_LOGGING_STATE		<=	"000010";
+					READ_MEM	<=	'0';
+					
 
 					if IS_SECOND_PART = '1' then
 						OPCODE <= IR_INPUT(7 downto 4);
@@ -154,6 +158,14 @@ begin
 						OPCODE <= IR_INPUT(15 downto 12);
 					end if;
 
+					if IS_SECOND_PART = '1' then
+						OPCODE_HELPER1 <= IR_INPUT(3 downto 2);
+						OPCODE_HELPER2 <= IR_INPUT(1 downto 0);
+					else
+						OPCODE_HELPER1 <= IR_INPUT(11 downto 10);
+						OPCODE_HELPER2 <= IR_INPUT(9 downto 8);
+					end if;
+					
 					case OPCODE is
 						
 						when "0000" =>
@@ -208,7 +220,7 @@ begin
 									IS_SECOND_PART		<= '0';
 									case OPCODE_HELPER2 is
 										when "00" =>
-											if Z_OUT = '1' then
+											if Z_IN = '1' then
 												PC_PLUS_I	<= '1';
 												ENABLE_PC	<= '1';
 												NEXT_CU_STATE	<= EXEC_BRZ;
@@ -216,7 +228,7 @@ begin
 												NEXT_CU_STATE	<= END_OF_INSTRUCTION;
 											end if;
 										when "01" =>
-											if C_OUT = '1' then
+											if C_IN = '1' then
 												PC_PLUS_I	<= '1';
 												ENABLE_PC	<= '1';
 												NEXT_CU_STATE	<= EXEC_BRC;
@@ -262,30 +274,52 @@ begin
 							SHADOW			<=	IS_SECOND_PART;
 							NEXT_CU_STATE <= EXEC_OUP;
 						when "0110" =>				--	And
-							SHADOW			<=	IS_SECOND_PART;
-							NEXT_CU_STATE <= EXEC_AND;
+							SHADOW						<=	IS_SECOND_PART;
+							ALU_OPERATION				<=	"0000";
+							ALU_ON_DATA_BUS				<=	'1';
+							IL_ENABLE					<=	'1';
+							NEXT_CU_STATE				<=	EXEC_AND;
 						when "0111" =>				--	OR
-							SHADOW			<=	IS_SECOND_PART;
+							SHADOW						<=	IS_SECOND_PART;
+							ALU_OPERATION				<=	"0001";
+							ALU_ON_DATA_BUS				<=	'1';
+							IL_ENABLE					<=	'1';
 							NEXT_CU_STATE <= EXEC_ORR;
 						when "1000" =>				--	Not
 							SHADOW			<=	IS_SECOND_PART;
+							ALU_OPERATION				<=	"1000";
+							ALU_ON_DATA_BUS				<=	'1';
+							IL_ENABLE					<=	'1';
 							NEXT_CU_STATE <= EXEC_NOT;
 						when "1001" =>				--	Shift left
 							SHADOW			<=	IS_SECOND_PART;
+							ALU_OPERATION				<=	"0100";
+							ALU_ON_DATA_BUS				<=	'1';
+							IL_ENABLE					<=	'1';
 							NEXT_CU_STATE <= EXEC_SHL;
 						when "1010" =>				--	Shift right
-							null;
-						when "1011" =>				--	Add
-							null;
-						when "1100" =>				--	Subtract
-							null;
-						when "1101" =>				--	Multiply
 							SHADOW						<=	IS_SECOND_PART;
 							ALU_OPERATION				<=	"0011";
 							ALU_ON_DATA_BUS				<=	'1';
 							IL_ENABLE					<=	'1';
-							NEXT_CU_STATE				<=	EXEC_CMP;
-							
+							NEXT_CU_STATE				<=	EXEC_SHR;
+						when "1011" =>				--	Add
+							RF_H_WRITE					<= '0';
+							RF_L_WRITE					<= '0';
+							THIS_LOGGING_STATE			<= "101011";
+							NEXT_CU_STATE				<=	EXEC_ADD;
+						when "1100" =>				--	Subtract
+							SHADOW						<=	IS_SECOND_PART;
+							ALU_OPERATION				<=	"0111";
+							ALU_ON_DATA_BUS				<=	'1';
+							IL_ENABLE					<=	'1';
+							NEXT_CU_STATE				<=	EXEC_SUB;
+						when "1101" =>				--	Multiply
+							SHADOW						<=	IS_SECOND_PART;
+							ALU_OPERATION				<=	"1001";
+							ALU_ON_DATA_BUS				<=	'1';
+							IL_ENABLE					<=	'1';
+							NEXT_CU_STATE				<=	EXEC_MUL;
 						when "1110" =>				--	Compare
 							SHADOW						<=	IS_SECOND_PART;
 							ALU_OPERATION				<=	"0011";
@@ -298,6 +332,7 @@ begin
 							SHADOW			<=	'0';
 							case OPCODE_HELPER2 is
 							when "00" =>			--	Move Immidiate low
+								
 								SHADOW			<=	'0';
 								RF_L_WRITE		<=	'1';
 								READ_MEM		<=	'1';	-- Read the immediate data directly from the data bus that came from memory
@@ -313,13 +348,14 @@ begin
 								ADDRESS_ON_BUS				<=	'1';
 								RF_H_WRITE					<=	'1';
 								RF_L_WRITE					<=	'1';
-								
+								NEXT_CU_STATE				<=	EXEC_SPC;
 							when "11" =>			--	Jump addressed
 								R_PLUS_I					<=	'1';
 								ENABLE_PC					<=	'1';
 								RD_ON_ADDRESS_UNIT_RSIDE	<=	'1';
-								
-							when others => null;
+								NEXT_CU_STATE				<=	EXEC_JPA;
+							when others =>
+								THIS_LOGGING_STATE <= "0X0X0X";
 							end case;
 						when others =>
 							null;
@@ -372,7 +408,15 @@ begin
 					IS_SECOND_PART	<= not IS_SECOND_PART;
 					NEXT_CU_STATE	<= WRITE_BACK;
 				when EXEC_ADD =>
+					THIS_LOGGING_STATE <= "101010";
+					NEXT_CU_STATE	<= EXEC_ADD2;
+				when EXEC_ADD2 =>
+					
 					IS_SECOND_PART	<= not IS_SECOND_PART;
+					SHADOW						<=	IS_SECOND_PART;
+					ALU_OPERATION				<=	"0110";
+					ALU_ON_DATA_BUS				<=	'1';
+					IL_ENABLE					<=	'1';
 					NEXT_CU_STATE	<= WRITE_BACK;
 				when EXEC_SUB =>
 					IS_SECOND_PART	<= not IS_SECOND_PART;
@@ -399,11 +443,11 @@ begin
 					IL_ENABLE		<=	'0';
 					NEXT_CU_STATE	<=	END_OF_INSTRUCTION;
 				when HLT =>
-					THIS_FUCKING_STATE <= "111110";
+					THIS_LOGGING_STATE <= "111110";
 					HALTED			<= '1';
 					NEXT_CU_STATE 	<= HLT;
 				when END_OF_INSTRUCTION =>
-					THIS_FUCKING_STATE <= "111111";
+					THIS_LOGGING_STATE <= "111111";
 					
 					Z_SET						<= '0';
 					Z_RESET						<= '0';
@@ -435,7 +479,7 @@ begin
 					else
 						ENABLE_PC	  <= '1';
 						PC_PLUS_1	  <= '1';
-						
+						READ_MEM	  <= '1';
 						NEXT_CU_STATE <= FETCH_0;
 					end if;
 				when others =>

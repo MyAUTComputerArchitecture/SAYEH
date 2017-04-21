@@ -53,7 +53,7 @@ architecture MAIN_TB_ARCH of MAIN_TB is
 	end component;
 	
 	signal CLK_COUNTER	: integer := 0;
-	signal CLK_COUNT	: integer := 50;
+	signal CLK_COUNT	: integer := 70;
 	signal CLK : std_logic := '1';
 	
 	signal MEM_DATA_READY		:	std_logic;
