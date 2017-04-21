@@ -32,7 +32,8 @@ entity PROCESSOR is
 		MEMORY_BUS					:	inout	std_logic_vector(WORD_SIZE - 1 downto 0);
 		ADDRESS_BUS					:	out	std_logic_vector(WORD_SIZE - 1 downto 0);
 		------------------------- EXTERNAL SIGNALS -------------------------
-		EXTERNAL_RESET				:	out	std_logic;
+		EXTERNAL_RESET				:	in	std_logic;
+		HALTED						:	out	std_logic;
 		------------------------- I/O PORTS SIGNALS -------------------------
 		PORTS						:	inout	std_logic_vector(63 downto 0)
       );
@@ -143,6 +144,7 @@ architecture PROCESSOR_ARCH of PROCESSOR is
 			-- ----------- SIGNALS FROM OUT OF PROCESSOR --------------
 			CLK                      : in  std_logic;
 			EXTERNAL_RESET           : in  std_logic;
+			HALTED					 : out std_logic;
 			-- --------------- MEMORY RELATED SIGNALS -----------------
 			MEM_DATA_READY           : in  std_logic;
 			WRITE_MEM                : out std_logic;
@@ -178,6 +180,7 @@ architecture PROCESSOR_ARCH of PROCESSOR is
 			IR_INPUT                 : in  std_logic_vector(WORD_SIZE - 1 downto 0);
 			IR_LOAD                  : out std_logic;
 			-- --------------- DATABUS CONTROL SIGNALS ----------------
+			ALU_ON_DATA_BUS			 : out std_logic;
 			ADDRESS_ON_BUS           : out std_logic;
 			RS_ON_ADDRESS_UNIT_RSIDE : out std_logic;
 			RD_ON_ADDRESS_UNIT_RSIDE : out std_logic
@@ -310,7 +313,7 @@ begin
 		)
 		port map(
 			CLK           => CLK,
-			WP_ADD        => IR_OUT(IMMEDIATE_H_INDEX downto IMMEDIATE_H_INDEX),
+			WP_ADD        => IR_OUT(REGISTER_FILE_ADDRESS_SIZE - 1 downto 0),
 			WP_ADD_ENABLE => WP_ADD_ENABLE,
 			WP_RESET      => WP_RESET,
 			WP_OUT        => WP_OUT
@@ -325,6 +328,7 @@ begin
 		port map(
 			CLK                      => CLK,
 			EXTERNAL_RESET           => EXTERNAL_RESET,
+			HALTED					 => HALTED,
 			MEM_DATA_READY           => MEM_DATA_READY,
 			WRITE_MEM                => WRITE_MEM,
 			READ_MEM                 => READ_MEM,
@@ -351,6 +355,7 @@ begin
 			SHADOW                   => SHADOW,
 			IR_INPUT                 => IR_OUT,
 			IR_LOAD                  => IR_LOAD,
+			ALU_ON_DATA_BUS			 =>	ALU_ON_DATA_BUS,
 			ADDRESS_ON_BUS           => ADDRESS_ON_DATA_BUS,
 			RS_ON_ADDRESS_UNIT_RSIDE => RS_ON_ADDRESS_UNIT_RSIDE,
 			RD_ON_ADDRESS_UNIT_RSIDE => RD_ON_ADDRESS_UNIT_RSIDE
@@ -390,7 +395,7 @@ begin
 		port map(
 			Rside    => ADDRESS_UNIT_RSIDE_BUS,
 			Iside    => IR_OUT(IMMEDIATE_H_INDEX downto IMMEDIATE_L_INDEX),
-			Address  => Address,
+			Address  => ADDRESS_UNIT_OUT,
 			clk      => CLK,
 			ResetPC  => RESET_PC,
 			PCplusI  => PC_PLUS_I,
@@ -401,8 +406,8 @@ begin
 		);
 	SHADOW_MUX : with SHADOW select
 		SHADOW_OUT <=
-			'0' when IR_OUT(SHADOW_1_H_INDEX downto SHADOW_1_L_INDEX),
-			'1' when IR_OUT(SHADOW_2_H_INDEX downto SHADOW_2_L_INDEX),
+			IR_OUT(SHADOW_1_H_INDEX downto SHADOW_1_L_INDEX) when '0',
+			IR_OUT(SHADOW_2_H_INDEX downto SHADOW_2_L_INDEX) when '1',
 			IR_OUT(SHADOW_1_H_INDEX downto SHADOW_1_L_INDEX) when others;
 				
 end architecture;

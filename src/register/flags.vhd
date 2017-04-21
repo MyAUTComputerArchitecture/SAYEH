@@ -61,10 +61,10 @@ begin
 		);
 	
 	
-	ZERO_F_LOAD <= IL_ENABLE and (not Z_RESET);
-	CARRY_F_LOAD <= IL_ENABLE and (not C_RESET);
+	ZERO_F_LOAD <= (Z_SET or IL_ENABLE) and (not Z_RESET);
+	CARRY_F_LOAD <= (C_SET or IL_ENABLE) and (not C_RESET);
 	
-	ZERO_F_INPUT <= (Z_SET or Z_IN) and IL_ENABLE;
-	CARRY_F_INPUT <= (C_SET or C_IN) and IL_ENABLE;
+	ZERO_F_INPUT <= (Z_SET or Z_IN) and ZERO_F_LOAD;
+	CARRY_F_INPUT <= (C_SET or C_IN) and ZERO_F_LOAD;
 	
 end architecture;

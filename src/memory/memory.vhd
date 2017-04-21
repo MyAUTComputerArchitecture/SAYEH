@@ -24,15 +24,23 @@ begin
 		variable buffermem : mem := (others => (others => '0'));
 		variable ad : integer;
 		variable init : boolean := true;
+		
+		
+		
 	begin
-		if init = true then
-			-- some initiation
-			buffermem(0) := "0000000000000000";
-			init := false;
-		end if;
+--		buffermem(0) := "ZZZZZZZZ00000000";
+		buffermem(0) := "0000001000000011";
+		buffermem(1) := "0000000100000000";
+		
+		
+--		if init = true then
+--			-- some initiation
+--			buffermem(0) := "0000000000000000";
+--			init := false;
+--		end if;
 
-		databus <= (others => 'Z');
-		memdataready <= '0';
+
+--		memdataready <= '0';
 
 		if  clk'event and clk = '1' then
 			ad := to_integer(unsigned(addressbus));
@@ -49,7 +57,8 @@ begin
 				if ad < blocksize then
 					buffermem(ad) := databus;
 				end if;
-
+			else
+				databus <= (others => 'Z');				
 			end if;
 		end if;
 	end process;

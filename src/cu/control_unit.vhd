@@ -18,6 +18,7 @@ entity CONTROL_UNIT is
 		-- ----------- SIGNALS FROM OUT OF PROCESSOR --------------
 		CLK                      : in  std_logic;
 		EXTERNAL_RESET           : in  std_logic;
+		HALTED					 : out std_logic;
 		-- --------------- MEMORY RELATED SIGNALS -----------------
 		MEM_DATA_READY           : in  std_logic;
 		WRITE_MEM                : out std_logic;
@@ -53,6 +54,7 @@ entity CONTROL_UNIT is
 		IR_INPUT                 : in  std_logic_vector(WORD_SIZE - 1 downto 0);
 		IR_LOAD                  : out std_logic;
 		-- --------------- DATABUS CONTROL SIGNALS ----------------
+		ALU_ON_DATA_BUS			 : out std_logic;
 		ADDRESS_ON_BUS           : out std_logic;
 		RS_ON_ADDRESS_UNIT_RSIDE : out std_logic;
 		RD_ON_ADDRESS_UNIT_RSIDE : out std_logic
@@ -61,22 +63,25 @@ end entity;
 
 architecture CONTROL_UNIT_ARCH of CONTROL_UNIT is
 	type CU_STATE_TYPE is (
-		FETCH_0,
+		FETCH_0, FETCH_1,
 		DECODE,
+		HLT,
 		EXEC_NOP, EXEC_HLT, EXEC_SZF, EXEC_CZF, EXEC_SCF, EXEC_CCF, EXEC_CWP,
 		EXEC_JPR, EXEC_BRZ, EXEC_BRC, EXEC_AWP,
 		EXEC_MVR, EXEC_LDA, EXEC_STA, EXEC_INP, EXEC_OUP, EXEC_AND, EXEC_ORR, EXEC_NOT, EXEC_SHL, EXEC_SHR, EXEC_ADD, EXEC_SUB, EXEC_MUL, EXEC_CMP,
 		EXEC_MIL, EXEC_MIH, EXEC_SPC, EXEC_JPA,
-		
-		END_OF_NOP
+		END_OF_NOP,
+		END_OF_INSTRUCTION
 	);
 
-	signal CURRENT_CU_STATE : CU_STATE_TYPE := FETCH_0;
+	signal NEXT_CU_STATE : CU_STATE_TYPE := FETCH_0;
 	signal IS_IMEDIATE      : std_logic;
 	signal IS_SECOND_PART   : std_logic;
 	signal OPCODE_HELPER1   : std_logic_vector(1 downto 0);
 	signal OPCODE_HELPER2   : std_logic_vector(1 downto 0);
 	signal OPCODE           : std_logic_vector(3 downto 0);
+	
+	signal THIS_FUCKING_STATE	:	std_logic_vector(5 downto 0);
 
 begin
 
@@ -84,167 +89,242 @@ begin
 	begin
 		if CLK'event and CLK = '1' then
 			if EXTERNAL_RESET = '1' then
+				THIS_FUCKING_STATE		<=	"XXXXXX";
 				WRITE_MEM                <= '0';
 				READ_MEM                 <= '0';
+				
 				RESET_PC                 <= '1';
+				PC_PLUS_I       		 <= '0';
+				PC_PLUS_1       		 <= '0';
+				R_PLUS_I        		 <= '0';
+				R_PLUS_0        		 <= '0';
+				ENABLE_PC				 <= '1';
+				
 				C_RESET                  <= '1';
 				Z_RESET                  <= '1';
+				C_SET					 <= '0';
+				Z_SET					 <= '0';
+				IL_ENABLE				 <= '0';
 				WP_RESET                 <= '1';
+				ALU_ON_DATA_BUS			 <=	'0';
 				ADDRESS_ON_BUS           <= '0';
 				RS_ON_ADDRESS_UNIT_RSIDE <= '0';
 				RD_ON_ADDRESS_UNIT_RSIDE <= '0';
+				HALTED					 <= '0';
 				IR_LOAD                  <= '0';
 				IS_SECOND_PART           <= '0';
-				CURRENT_CU_STATE         <= FETCH_0;
+				NEXT_CU_STATE         <= FETCH_0;
 			else
-				case CURRENT_CU_STATE is
-					when FETCH_0 =>
-						READ_MEM <= '1';
-						-- -- AL_OUT <- PC ----
-						RESET_PC         <= '0';
-						PC_PLUS_I        <= '0';
-						PC_PLUS_1        <= '0';
-						R_PLUS_I         <= '0';
-						R_PLUS_0         <= '0';
-						if MEM_DATA_READY = '1' then
-							IR_LOAD          <= '1';
-							CURRENT_CU_STATE <= DECODE;
-						end if;
-					when DECODE =>
-						IR_LOAD <= '0';
+				RESET_PC			<= '0';
+				ENABLE_PC			<= '0';
+				Z_SET				<= '0';
+				Z_RESET				<= '0';
+				C_SET				<= '0';
+				C_RESET				<= '0';
+				
+				WP_RESET                 <= '0';
+				case NEXT_CU_STATE is
+				when FETCH_0 =>
+					THIS_FUCKING_STATE		<=	"000000";
+					READ_MEM <= '1';
+					-- -- AL_OUT <- PC ----
+					RESET_PC         <= '0';
+					PC_PLUS_I        <= '0';
+					PC_PLUS_1        <= '0';
+					R_PLUS_I         <= '0';
+					R_PLUS_0         <= '0';
+					
+					IR_LOAD          <= '1';
+					if MEM_DATA_READY = '1' then
+						NEXT_CU_STATE <= DECODE;
+					end if;
+				when DECODE =>
+					THIS_FUCKING_STATE		<=	"000010";
+					READ_MEM	<=	'0';
+					IR_LOAD <= '0';
 
-						if IS_SECOND_PART = '1' then
-							OPCODE <= IR_INPUT(7 downto 4);
-						else
-							OPCODE <= IR_INPUT(15 downto 12);
-						end if;
+					if IS_SECOND_PART = '1' then
+						OPCODE <= IR_INPUT(7 downto 4);
+					else
+						OPCODE <= IR_INPUT(15 downto 12);
+					end if;
 
-						case OPCODE is
-							when "0000" =>
-								if IS_SECOND_PART = '1' then
-									OPCODE_HELPER1 <= IR_INPUT(3 downto 2);
-									OPCODE_HELPER2 <= IR_INPUT(1 downto 0);
-								else
-									OPCODE_HELPER1 <= IR_INPUT(11 downto 10);
-									OPCODE_HELPER2 <= IR_INPUT(9 downto 8);
-								end if;
+					case OPCODE is
+						
+						when "0000" =>
+							if IS_SECOND_PART = '1' then
+								OPCODE_HELPER1 <= IR_INPUT(3 downto 2);
+								OPCODE_HELPER2 <= IR_INPUT(1 downto 0);
+							else
+								OPCODE_HELPER1 <= IR_INPUT(11 downto 10);
+								OPCODE_HELPER2 <= IR_INPUT(9 downto 8);
+							end if;
 
-								case OPCODE_HELPER1 is
-									when "00" =>
-										case OPCODE_HELPER2 is
-											when "00" => CURRENT_CU_STATE <= EXEC_NOP;
-											when "01" => CURRENT_CU_STATE <= EXEC_HLT;
-											when "10" => CURRENT_CU_STATE <= EXEC_SZF;
-											when "11" => CURRENT_CU_STATE <= EXEC_CZF;
-										end case;
-									when "01" =>
-										case OPCODE_HELPER2 is
-											when "00" => CURRENT_CU_STATE <= EXEC_SCF;
-											when "01" => CURRENT_CU_STATE <= EXEC_CCF;
-											when "10" => CURRENT_CU_STATE <= EXEC_CWP;
-											when "11" => CURRENT_CU_STATE <= EXEC_JPR;
-										end case;
-									when "10" =>
-										case OPCODE_HELPER2 is
-											when "00" => CURRENT_CU_STATE <= EXEC_BRZ;
-											when "01" => CURRENT_CU_STATE <= EXEC_BRC;
-											when "10" => CURRENT_CU_STATE <= EXEC_AWP;
-										end case;
-									when "11" =>
-										null;
-								end case;
-							when "0001" =>
-								CURRENT_CU_STATE <= EXEC_MVR; 
-							when "0010" =>
-								CURRENT_CU_STATE <= EXEC_LDA;
-							when "0011" =>
-								CURRENT_CU_STATE <= EXEC_STA;
-							when "0100" =>
-								CURRENT_CU_STATE <= EXEC_INP;
-							when "0101" =>
-								CURRENT_CU_STATE <= EXEC_OUP;
-							when "0110" =>
-								CURRENT_CU_STATE <= EXEC_AND;
-							when "0111" =>
-								CURRENT_CU_STATE <= EXEC_ORR;
-							when "1000" =>
-								CURRENT_CU_STATE <= EXEC_NOT;
-							when "1001" =>
-								CURRENT_CU_STATE <= EXEC_SHL;
-							when "1010" =>
-								null;
-							when "1011" =>
-								null;
-							when "1100" =>
-								null;
-							when "1101" =>
-								null;
-							when "1110" =>
-								null;
-							when "1111" =>
-								null;
-						end case;
-					when EXEC_NOP =>
-						null;
-					when EXEC_HLT =>
-						null;
-					when EXEC_SZF =>
-						null;
-					when EXEC_CZF =>
-						null;
-					when EXEC_SCF =>
-						null;
-					when EXEC_CCF =>
-						null;
-					when EXEC_CWP =>
-						null;
-					when EXEC_JPR =>
-						null;
-					when EXEC_BRZ =>
-						null;
-					when EXEC_BRC =>
-						null;
-					when EXEC_AWP =>
-						null;
-					when EXEC_MVR =>
-						null;
-					when EXEC_LDA =>
-						null;
-					when EXEC_STA =>
-						null;
-					when EXEC_INP =>
-						null;
-					when EXEC_OUP =>
-						null;
-					when EXEC_AND =>
-						null;
-					when EXEC_ORR =>
-						null;
-					when EXEC_NOT =>
-						null;
-					when EXEC_SHL =>
-						null;
-					when EXEC_SHR =>
-						null;
-					when EXEC_ADD =>
-						null;
-					when EXEC_SUB =>
-						null;
-					when EXEC_MUL =>
-						null;
-					when EXEC_CMP =>
-						null;
-					when EXEC_MIL =>
-						null;
-					when EXEC_MIH =>
-						null;
-					when EXEC_SPC =>
-						null;
-					when EXEC_JPA =>
-						null;
-					when END_OF_NOP =>
-						null;
-
+							case OPCODE_HELPER1 is
+								when "00" =>
+									IS_SECOND_PART <= not IS_SECOND_PART;
+									
+									case OPCODE_HELPER2 is
+										when "00" =>		--	NO OPERATION 
+											NEXT_CU_STATE <= END_OF_INSTRUCTION;
+										when "01" =>		--	HLT 
+											NEXT_CU_STATE <= HLT;
+										when "10" =>		--	SZF
+											Z_SET		<= '1';
+											NEXT_CU_STATE <= END_OF_INSTRUCTION;					
+										when "11" =>		--	CZF
+											Z_RESET		<= '1';
+											NEXT_CU_STATE <= END_OF_INSTRUCTION;
+										when others => null;
+									end case;
+									
+								when "01" =>
+									
+									case OPCODE_HELPER2 is
+										when "00" =>		--	SCF
+											IS_SECOND_PART <= not IS_SECOND_PART;
+											C_SET	<= '1';
+											NEXT_CU_STATE	<= END_OF_INSTRUCTION;
+										when "01" =>		--	CCF	 
+											IS_SECOND_PART <= not IS_SECOND_PART;
+											C_RESET	<= '1';
+											NEXT_CU_STATE	<= END_OF_INSTRUCTION;
+										when "10" =>		--	CWP 
+											IS_SECOND_PART <= not IS_SECOND_PART;
+											WP_RESET	<= '1';
+											NEXT_CU_STATE	<= END_OF_INSTRUCTION;
+										when "11" =>
+											null;
+										when others => null;
+									end case;
+								when "10" =>
+									case OPCODE_HELPER2 is
+										when "00" => NEXT_CU_STATE <= EXEC_BRZ;
+										when "01" => NEXT_CU_STATE <= EXEC_BRC;
+										when "10" => NEXT_CU_STATE <= EXEC_AWP;
+										when others => null;
+									end case;
+								when "11" =>
+									null;
+								when others =>
+									null;
+							end case;
+						when "0001" =>
+							NEXT_CU_STATE <= EXEC_MVR; 
+						when "0010" =>
+							NEXT_CU_STATE <= EXEC_LDA;
+						when "0011" =>
+							NEXT_CU_STATE <= EXEC_STA;
+						when "0100" =>
+							NEXT_CU_STATE <= EXEC_INP;
+						when "0101" =>
+							NEXT_CU_STATE <= EXEC_OUP;
+						when "0110" =>
+							NEXT_CU_STATE <= EXEC_AND;
+						when "0111" =>
+							NEXT_CU_STATE <= EXEC_ORR;
+						when "1000" =>
+							NEXT_CU_STATE <= EXEC_NOT;
+						when "1001" =>
+							NEXT_CU_STATE <= EXEC_SHL;
+						when "1010" =>
+							null;
+						when "1011" =>
+							null;
+						when "1100" =>
+							null;
+						when "1101" =>
+							null;
+						when "1110" =>
+							null;
+						when "1111" =>
+							null;
+						when others =>
+							null;
+					end case;
+				when EXEC_NOP =>
+					null;
+				when EXEC_HLT =>
+					null;
+				when EXEC_SZF =>
+					NEXT_CU_STATE <= END_OF_INSTRUCTION;
+				when EXEC_CZF =>
+					null;
+				when EXEC_SCF =>
+					null;
+				when EXEC_CCF =>
+					null;
+				when EXEC_CWP =>
+					null;
+				when EXEC_JPR =>
+					null;
+				when EXEC_BRZ =>
+					null;
+				when EXEC_BRC =>
+					null;
+				when EXEC_AWP =>
+					null;
+				when EXEC_MVR =>
+					null;
+				when EXEC_LDA =>
+					null;
+				when EXEC_STA =>
+					null;
+				when EXEC_INP =>
+					null;
+				when EXEC_OUP =>
+					null;
+				when EXEC_AND =>
+					null;
+				when EXEC_ORR =>
+					null;
+				when EXEC_NOT =>
+					null;
+				when EXEC_SHL =>
+					null;
+				when EXEC_SHR =>
+					null;
+				when EXEC_ADD =>
+					null;
+				when EXEC_SUB =>
+					null;
+				when EXEC_MUL =>
+					null;
+				when EXEC_CMP =>
+					null;
+				when EXEC_MIL =>
+					null;
+				when EXEC_MIH =>
+					null;
+				when EXEC_SPC =>
+					null;
+				when EXEC_JPA =>
+					null;
+				when END_OF_NOP =>
+					null;
+					
+				
+				when HLT =>
+					THIS_FUCKING_STATE <= "111110";
+					HALTED			<= '1';
+					NEXT_CU_STATE 	<= HLT;
+				when END_OF_INSTRUCTION =>
+					THIS_FUCKING_STATE <= "111111";
+					Z_SET		<= '0';
+					Z_RESET		<= '0';
+					C_SET		<= '0';
+					C_RESET		<= '0';
+					WP_RESET	<= '0';
+					if IS_SECOND_PART = '1' then
+						NEXT_CU_STATE <= DECODE;
+					else
+						ENABLE_PC	  <= '1';
+						PC_PLUS_1	  <= '1';
+						NEXT_CU_STATE <= FETCH_0;
+					end if;
+				when others =>
+					null;
+						
 				end case;
 			end if;
 

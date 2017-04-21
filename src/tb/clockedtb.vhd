@@ -19,39 +19,32 @@ architecture CLOCK_TB_ARCH of CLOCK_TB is
 	signal CLK : std_logic := '1';
 	
 	
-	component FLAGS is
-		port(
-			CLK			:	in	std_logic;						--	Clock signal
-			C_IN		:	in	std_logic;						--	Carry in
-			Z_IN		:	in	std_logic;						--	Zero in
-			C_SET		:	in	std_logic;						--	Carry Flag set
-			C_RESET		:	in 	std_logic;						--	Carry Flag reset
-			Z_SET		:	in	std_logic;						--	Zero Flag set
-			Z_RESET		:	in 	std_logic;						--	Zero Flag reset
-			IL_ENABLE	:	in	std_logic;						--	Imediate Load enable	
-			C_OUT		:	out	std_logic;						--	Carry out
-			Z_OUT		:	out	std_logic						--	Zero out
-		);
-	end component;
+	component memory is
+		generic (blocksize : integer := 1024);
 	
-	signal C_IN, Z_IN, C_SET, C_RESET, Z_SET, Z_RESET, IL_ENABLE, C_OUT, Z_OUT : std_logic;
+		port (clk, readmem, writemem : in std_logic;
+			addressbus: in std_logic_vector (15 downto 0);
+			databus : inout std_logic_vector (15 downto 0);
+			memdataready : out std_logic);
+	end component memory;
 	
+	signal readmem, writemem, memdataready	: std_logic;
+	signal address							:	std_logic_vector(15 downto 0);
+	signal data								:	std_logic_vector(15 downto 0);
 begin
-	FLAGS_inst : component FLAGS
+	memory_inst : component memory
+		generic map(
+			blocksize => 1024
+		)
 		port map(
-			CLK       => CLK,
-			C_IN      => C_IN,
-			Z_IN      => Z_IN,
-			C_SET     => C_SET,
-			C_RESET   => C_RESET,
-			Z_SET     => Z_SET,
-			Z_RESET   => Z_RESET,
-			IL_ENABLE => IL_ENABLE,
-			C_OUT     => C_OUT,
-			Z_OUT     => Z_OUT
+			clk          => clk,
+			readmem      => readmem,
+			writemem     => writemem,
+			addressbus   => address,
+			databus      => data,
+			memdataready => memdataready
 		);
-	
-		
+			
 	CLOCK_GEN : process is
 	begin
 		loop
@@ -73,32 +66,13 @@ begin
 	
 	TEST_BENCH:process
 	begin
-		C_SET		<= '0';
-		Z_SET		<= '0';
-		IL_ENABLE	<= '0';
-		C_IN		<= '0';
-		Z_IN		<= '0';
-		C_RESET 	<= '1';
-		Z_RESET 	<= '1';
-		wait for 150 ns;
+		readmem	<=	'1';
+		address	<=	"0000000000000000";
+		wait for 120 ns;
 		
-		C_SET		<= '0';
-		Z_SET		<= '0';
-		IL_ENABLE	<= '1';
-		C_IN		<= '1';
-		Z_IN		<= '0';
-		C_RESET 	<= '0';
-		Z_RESET 	<= '0';
-		wait for 300 ns;
+		address	<=	"0000000000000010";
+		wait for 220 ns;
 		
-		C_SET		<= '0';
-		Z_SET		<= '0';
-		IL_ENABLE	<= '0';
-		C_IN		<= '0';
-		Z_IN		<= '0';
-		C_RESET 	<= '1';
-		Z_RESET 	<= '0';
-		wait for 100 ns;
 		wait for 200 ns;
 		assert false report "Reached end of test";
 		wait;
