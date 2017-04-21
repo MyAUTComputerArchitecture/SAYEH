@@ -16,3 +16,7 @@ Extra features implemented in this project:
 * Multiplication module
 * Shift-Right module
 * Port manager
+
+## Others
+
+* We have 2 bash files, that performs directory support to ghdl compiler, which compiles each component that are listed in _module\_list_ file and then runs the _test bench_. These bashes are supported in Linux and MacOS.
