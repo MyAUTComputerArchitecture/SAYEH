@@ -198,15 +198,34 @@ begin
 											IS_SECOND_PART <= not IS_SECOND_PART;
 											WP_RESET	<= '1';
 											NEXT_CU_STATE	<= END_OF_INSTRUCTION;
-										when "11" =>
-											null;
+										when "11" =>		--	JPR
+											PC_PLUS_I	<= '1';
+											ENABLE_PC	<= '1';
+											NEXT_CU_STATE	<= EXEC_JPR;						
 										when others => null;
 									end case;
 								when "10" =>
+									IS_SECOND_PART		<= '0';
 									case OPCODE_HELPER2 is
-										when "00" => NEXT_CU_STATE <= EXEC_BRZ;
-										when "01" => NEXT_CU_STATE <= EXEC_BRC;
-										when "10" => NEXT_CU_STATE <= EXEC_AWP;
+										when "00" =>
+											if Z_OUT = '1' then
+												PC_PLUS_I	<= '1';
+												ENABLE_PC	<= '1';
+												NEXT_CU_STATE	<= EXEC_BRZ;
+											else
+												NEXT_CU_STATE	<= END_OF_INSTRUCTION;
+											end if;
+										when "01" =>
+											if C_OUT = '1' then
+												PC_PLUS_I	<= '1';
+												ENABLE_PC	<= '1';
+												NEXT_CU_STATE	<= EXEC_BRC;
+											else
+												NEXT_CU_STATE	<= END_OF_INSTRUCTION;
+											end if;
+										when "10" =>
+											WP_ADD_ENABLE	<= '1';
+											NEXT_CU_STATE	<= EXEC_AWP;
 										when others => null;
 									end case;
 								when "11" =>
@@ -214,40 +233,51 @@ begin
 								when others =>
 									null;
 							end case;
-						when "0001" =>					--	mvr
-							SHADOW						<=	IS_SECOND_PART;
-							RS_ON_ADDRESS_UNIT_RSIDE	<=	'1';
-							
+						when "0001" =>				--	Move register
+							SHADOW						<= IS_SECOND_PART;
+							ALU_ON_DATA_BUS				<= '1';
+							RF_H_WRITE					<= '1';
+							RF_L_WRITE					<= '1';
 							NEXT_CU_STATE <= EXEC_MVR; 
-						when "0010" =>
-							SHADOW			<=	IS_SECOND_PART;
+						when "0010" =>				--	Load address
+							SHADOW						<= IS_SECOND_PART;
+							READ_MEM					<= '1';
+							R_PLUS_0					<= '1';
+							RS_ON_ADDRESS_UNIT_RSIDE	<= '1';
+							RF_H_WRITE					<= '1';
+							RF_L_WRITE					<= '1';
 							NEXT_CU_STATE <= EXEC_LDA;
-						when "0011" =>
-							SHADOW			<=	IS_SECOND_PART;
+						when "0011" =>				--	Store address
+							SHADOW						<= IS_SECOND_PART;
+							ALU_OPERATION				<= "1010";
+							ALU_ON_DATA_BUS				<= '1';
+							WRITE_MEM					<= '1';
+							R_PLUS_0					<= '1';
+							RD_ON_ADDRESS_UNIT_RSIDE	<= '1';
 							NEXT_CU_STATE <= EXEC_STA;
-						when "0100" =>
+						when "0100" =>				--	Input from port
 							SHADOW			<=	IS_SECOND_PART;
 							NEXT_CU_STATE <= EXEC_INP;
-						when "0101" =>
+						when "0101" =>				--	Output to port
 							SHADOW			<=	IS_SECOND_PART;
 							NEXT_CU_STATE <= EXEC_OUP;
-						when "0110" =>
+						when "0110" =>				--	And
 							SHADOW			<=	IS_SECOND_PART;
 							NEXT_CU_STATE <= EXEC_AND;
-						when "0111" =>
+						when "0111" =>				--	OR
 							SHADOW			<=	IS_SECOND_PART;
 							NEXT_CU_STATE <= EXEC_ORR;
-						when "1000" =>
+						when "1000" =>				--	Not
 							SHADOW			<=	IS_SECOND_PART;
 							NEXT_CU_STATE <= EXEC_NOT;
-						when "1001" =>
+						when "1001" =>				--	Shift left
 							SHADOW			<=	IS_SECOND_PART;
 							NEXT_CU_STATE <= EXEC_SHL;
-						when "1010" =>
+						when "1010" =>				--	Shift right
 							null;
-						when "1011" =>
+						when "1011" =>				--	Add
 							null;
-						when "1100" =>
+						when "1100" =>				--	Subtract
 							null;
 						when "1101" =>				--	Multiply
 							SHADOW						<=	IS_SECOND_PART;
@@ -325,38 +355,49 @@ begin
 				when EXEC_INP =>
 					NEXT_CU_STATE <= END_OF_INSTRUCTION;
 				when EXEC_OUP =>
-					NEXT_CU_STATE <= END_OF_INSTRUCTION;
+					NEXT_CU_STATE	<= END_OF_INSTRUCTION;
 				when EXEC_AND =>
-					NEXT_CU_STATE <= END_OF_INSTRUCTION;
+					IS_SECOND_PART	<= not IS_SECOND_PART;
+					NEXT_CU_STATE	<= WRITE_BACK;
 				when EXEC_ORR =>
-					NEXT_CU_STATE <= END_OF_INSTRUCTION;
+					IS_SECOND_PART	<= not IS_SECOND_PART;
+					NEXT_CU_STATE	<= WRITE_BACK;
 				when EXEC_NOT =>
-					NEXT_CU_STATE <= END_OF_INSTRUCTION;
+					IS_SECOND_PART	<= not IS_SECOND_PART;
+					NEXT_CU_STATE	<= WRITE_BACK;
 				when EXEC_SHL =>
-					NEXT_CU_STATE <= END_OF_INSTRUCTION;
+					IS_SECOND_PART	<= not IS_SECOND_PART;
+					NEXT_CU_STATE	<= WRITE_BACK;
 				when EXEC_SHR =>
-					NEXT_CU_STATE <= END_OF_INSTRUCTION;
+					IS_SECOND_PART	<= not IS_SECOND_PART;
+					NEXT_CU_STATE	<= WRITE_BACK;
 				when EXEC_ADD =>
-					NEXT_CU_STATE <= END_OF_INSTRUCTION;
+					IS_SECOND_PART	<= not IS_SECOND_PART;
+					NEXT_CU_STATE	<= WRITE_BACK;
 				when EXEC_SUB =>
-					NEXT_CU_STATE <= END_OF_INSTRUCTION;
+					IS_SECOND_PART	<= not IS_SECOND_PART;
+					NEXT_CU_STATE	<= WRITE_BACK;
 				when EXEC_MUL =>
-					NEXT_CU_STATE <= END_OF_INSTRUCTION;
+					IS_SECOND_PART	<= not IS_SECOND_PART;
+					NEXT_CU_STATE	<= WRITE_BACK;
 				when EXEC_CMP =>
-					IS_SECOND_PART		<= not	IS_SECOND_PART;
-					NEXT_CU_STATE <= END_OF_INSTRUCTION;
+					NEXT_CU_STATE 	<= END_OF_INSTRUCTION;
 				when EXEC_MIL =>
-					NEXT_CU_STATE <= END_OF_INSTRUCTION;
+					NEXT_CU_STATE	<= END_OF_INSTRUCTION;
 				when EXEC_MIH =>
-					NEXT_CU_STATE <= END_OF_INSTRUCTION;
+					NEXT_CU_STATE	<= END_OF_INSTRUCTION;
 				when EXEC_SPC =>
-					NEXT_CU_STATE <= END_OF_INSTRUCTION;
+					NEXT_CU_STATE	<= END_OF_INSTRUCTION;
 				when EXEC_JPA =>
 					null;
 				when END_OF_NOP =>
 					null;
-					
-				
+				when WRITE_BACK =>
+					ALU_ON_DATA_BUS	<=	'0';
+					RF_H_WRITE		<=	'1';
+					RF_L_WRITE		<=	'1';
+					IL_ENABLE		<=	'0';
+					NEXT_CU_STATE	<=	END_OF_INSTRUCTION;
 				when HLT =>
 					THIS_FUCKING_STATE <= "111110";
 					HALTED			<= '1';
@@ -371,8 +412,10 @@ begin
 					IL_ENABLE					<= '0';
 					
 					WP_RESET					<= '0';
+					WP_ADD_ENABLE				<= '0';
 					
 					READ_MEM					<= '0';
+					WRITE_MEM					<= '0';
 					
 					RF_L_WRITE					<=	'0';
 					RF_H_WRITE					<=	'0';
@@ -380,9 +423,11 @@ begin
 					PC_PLUS_I					<=	'0';
 					R_PLUS_I					<=	'0';
 					ENABLE_PC					<=	'0';
+					R_PLUS_0					<=	'0';
 					
 					ADDRESS_ON_BUS				<=	'0';
 					RS_ON_ADDRESS_UNIT_RSIDE	<=	'0';
+					RD_ON_ADDRESS_UNIT_RSIDE	<=	'0';
 					ALU_ON_DATA_BUS				<=	'0';
 							
 					if IS_SECOND_PART = '1' then
