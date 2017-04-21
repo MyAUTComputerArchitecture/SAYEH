@@ -270,6 +270,7 @@ begin
 			ADDER_SUB_COMPONENT_OUT when "0111",
 			TWOS_COMPLEMENT_COMPONENT_OUT when "1000",
 			MULTIPLICATION_COMPONENT_OUT when "1001",
+			INPUT2 when "1010",
 			
 			UNKNOWN_SIG when others;
 	
@@ -285,6 +286,8 @@ begin
 			ADDER_SUB_COMPONENT_CARRY when "0110",
 			ADDER_SUB_COMPONENT_CARRY when "0111",
 			'0' when "1000",
+			'0' when "1001",
+			'0' when "1010",
 			
 			'U' when others;
 			
@@ -299,6 +302,7 @@ begin
 			NOR_OF_OUTPUT when "0110",
 			NOR_OF_OUTPUT when "0111",
 			NOR_OF_OUTPUT when "1000",
+			NOR_OF_OUTPUT when "1001",
 			
 			'U' when others;
 	
