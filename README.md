@@ -15,3 +15,6 @@ Enough Hardware) which contains the following major components:
 address-bus. Instructions used in this processor has 8 or 16-bit width. Short instructions (8-bit
 ones) contain shadow instructions, which effectively pack 2 such instructions (8-bit) into a single
 16-bit word. Figure 1 shows SAYEH’s interface (it’s the overview of the whole module):
+
+## Documentation
+You can see full documentation [here](/docs).
