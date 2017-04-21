@@ -108,6 +108,11 @@ begin
 		op	<=	"0000";
 		wait for 1 ns;						-- Two's complement
 		
+		a	<=	"0000000000001011";
+		b	<=	"0000000001010001";
+		op	<=	"1001";
+		wait for 1 ns;						-- Multiplication
+
 		wait for 1 ns;
 		assert false report "Reached end of test";
 		wait;
