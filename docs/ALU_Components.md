@@ -54,3 +54,7 @@ Using a sequense of **ADDER_SUBTRACTOR** components. This component has no proce
 ### Description
 
 This component performs two’s complement operation on INPUT _( Rs in SAYEH )_ and stores it in OUTPUT _( Rd in SAYEH )_.
+
+### How it works?
+
+Using a sequense of **FULL_ADDER** components to perform this operation.
