@@ -16,7 +16,7 @@ architecture CLOCK_TB_ARCH of CLOCK_TB is
 	
 	signal CLK_COUNTER	: integer := 0;
 	signal CLK_COUNT	: integer := 50;
-	signal CLK : std_logic := '1';
+	signal CLK : std_logic := '0';
 	
 	
 	component ADDRESS_UNIT is
@@ -37,7 +37,7 @@ architecture CLOCK_TB_ARCH of CLOCK_TB is
 	
 begin
 	REG : ADDRESS_UNIT
-		port map(rs, iss, adr, CLK, resPC, pc1, pcI, rpi, rp0, epc);
+		port map(rs, iss, adr, CLK, resPC, pcI, pc1, rpi, rp0, epc);
 		
 	CLOCK_GEN : process is
 	begin
@@ -60,14 +60,20 @@ begin
 	
 	TEST_BENCH:process
 	begin
-		epc <= '1';
 		resPC <= '1';
-		wait for 100 ns;
+		wait for 200 ns;
 		resPC <= '0';
 		iss <= "00010111";
 		pcI <= '1';
-		wait for 100 ns;
-		
+		epc <= '1';
+		wait for 200 ns; 
+		wait for 200 ns;	-- wait for clock
+		epc <= '0';
+		pcI <= '0';
+		pc1 <= '1';
+		wait for 200 ns;
+		epc <= '1';
+		wait for 200 ns;
 		wait for 200 ns;
 		assert false report "Reached end of test";
 		wait;
