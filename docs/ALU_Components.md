@@ -15,13 +15,42 @@
 <hr>
 
 ## Comparison Component
+
 |Inputs|Outputs|
 | :---: | :---: |
 |INPUT1|Z_FLAG|
 |INPUT2|CARRY_FLAG|
 
-### Description:
+### Description
+
 This component compares INPUT1 _( Rs in SAYEH )_ and INPUT2 _( Rd in SAYEH )_.  
 If `INPUT1 < INPUT2` then CARRY\_FLAG becomes 1 and if `INPUT1 = INPUT2` then Z\_FLAG becomes 1.
+
 ### How it works?
-This component uses a sequense of modified **BIT_COMPARATOR** components to support cascading.
+
+Using a sequense of modified **BIT_COMPARATOR** components to support cascading.
+
+## Multiplication Component
+
+|Inputs|Outputs|
+| :---: | :---: |
+|INPUT1|OUTPUT|
+|INPUT2||
+
+### Description
+
+This component multiplicate 2 numbers INPUT1 and INPUT2.
+
+### How it works?
+
+Using a sequense of **ADDER_SUBTRACTOR** components. This component has no process and is **generic** so can support any number sizes.
+
+## Two's complement Component
+
+|Inputs|Outputs|
+| :---: | :---: |
+|INPUT|OUTPUT|
+
+### Description
+
+This component performs two’s complement operation on INPUT _( Rs in SAYEH )_ and stores it in OUTPUT _( Rd in SAYEH )_.
