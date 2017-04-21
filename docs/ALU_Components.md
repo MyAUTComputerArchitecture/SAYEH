@@ -11,6 +11,9 @@
 |Shift R Component|0101|
 |Add Component|0110|
 |Subtract Component|0111|
+|Two's complement Component|1000|
+|Multiply Component|1001|
+|Load B|1010|
 
 <hr>
 
