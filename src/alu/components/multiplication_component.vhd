@@ -75,8 +75,13 @@ begin
 		output(I + 1) <= summ(I)(0);
 	end generate;
 	
+	-- AH:
+	-- for Q in 0 to COMPONENT_SIZE/2 - 1 generate
+	-- 	output(Q + COMPONENT_SIZE/2) <= summ(COMPONENT_SIZE/2 - 2)(Q);
+	-- end generate;
 	AH:
-	for Q in 0 to COMPONENT_SIZE/2 - 1 generate
-		output(Q + COMPONENT_SIZE/2) <= summ(COMPONENT_SIZE/2 -2)(Q);
+	for Q in 0 to COMPONENT_SIZE/2 - 2 generate
+		output(Q + COMPONENT_SIZE/2) <= summ(COMPONENT_SIZE/2 - 2)(Q + 1);
 	end generate;
+	output(COMPONENT_SIZE - 1) <= cables(COMPONENT_SIZE/2 - 2);
 end architecture;
