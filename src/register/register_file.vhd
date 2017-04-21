@@ -49,12 +49,12 @@ begin
 			address := to_integer(unsigned(WP_IN));
 			if(RF_L_WRITE = '1') then
 				for I in  IDATA'length / 2 - 1 downto 0 loop
-					REGISTER_FILE_ARR(address,i) := IDATA(I);
+					REGISTER_FILE_ARR(address + to_integer(unsigned(SELECTOR(3 downto 2))) ,I) := IDATA(I);
 				end loop;
 			end if;
 			if(RF_H_WRITE = '1') then
 				for I in IDATA'length - 1 downto IDATA'length / 2 loop
-					REGISTER_FILE_ARR(address,i) := IDATA(I);
+					REGISTER_FILE_ARR(address + to_integer(unsigned(SELECTOR(3 downto 2))), I) := IDATA(I);
 				end loop;
 				
 			end if;
